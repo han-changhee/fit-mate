@@ -1,0 +1,23 @@
+import { defineConfig } from '@apps-in-toss/web-framework/config';
+
+export default defineConfig({
+  appName: 'fit-mate',
+  web: {
+    host: 'localhost',
+    port: 3000,
+    commands: {
+      dev: 'rsbuild dev',
+      build: 'rsbuild build',
+    },
+  },
+  permissions: [],
+  outdir: 'dist',
+  brand: {
+    displayName: '핏메이트',
+    icon: 'https://via.placeholder.com/180x180.png?text=%F0%9F%8F%83',
+    primaryColor: '#3182F6',
+  },
+  webViewProps: {
+    type: 'partner',
+  },
+});
