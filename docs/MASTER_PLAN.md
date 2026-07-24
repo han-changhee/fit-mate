@@ -144,7 +144,7 @@
 | 스타일 | Tailwind CSS v4 (`@rsbuild/plugin-tailwindcss`) | 유틸리티 클래스 직접 사용, 별도 CSS 구조 최소화 |
 | 토스 SDK | `@apps-in-toss/web-framework` | 광고(TossAds/GoogleAdMob), 결제(IAP/TossPay), 알림, Storage, 위치 등 브릿지 전부 포함 |
 | 백엔드 | Vercel Edge Functions (`api/*.ts`) | `dawn-peach` 패턴과 동일 — 서버 시크릿(AI API 키) 보호 목적 |
-| AI 루틴 생성 | Claude API (Anthropic) | 서버 사이드에서만 호출, 클라이언트에 API 키 노출 금지 |
+| AI 루틴 생성 | Gemini API (Google AI Studio) | 무료 티어로 시작 가능(`gemini-2.5-flash-lite` 기준), 서버 사이드에서만 호출, 클라이언트에 API 키 노출 금지 |
 | 로컬 개발 | rsbuild dev server + middleware | `server.setup`에서 `api/*.ts`와 동일한 핸들러 함수를 재사용해 `npm run dev`만으로 전체 플로우 검증 |
 
 ### 3.2 디렉토리 구조 (제안)
@@ -192,7 +192,7 @@ fit-mate/
 ### 3.3 AI 루틴 추천 데이터 흐름
 
 ```
-[클라이언트]                         [Vercel Edge Function]              [Claude API]
+[클라이언트]                         [Vercel Edge Function]              [Gemini API]
 사용자 프로필(체력/목적/부위)
     │  POST /api/routine
     ▼
@@ -200,7 +200,8 @@ fit-mate/
                                       │  프롬프트 구성
                                       │  (프로필 + 최근 운동 이력)
                                       ▼
-                                 ──────────────────▶  Claude API 호출
+                                 ──────────────────▶  Gemini API 호출
+                                                          (responseSchema로 구조화된 JSON 강제)
                                                           │
                                       ◀──────────────────  루틴 JSON 응답
                                       │  스키마 검증/정규화
@@ -243,7 +244,8 @@ Response:
 
 - 프로덕션: `api/routine.ts`를 Vercel Edge Function(`export const config = { runtime: 'edge' }`)으로 구현
 - 로컬 개발: `rsbuild.config.ts`의 `server.setup`에서 동일 핸들러 함수를 `/api/routine` 미들웨어로 마운트(`dawn-peach/rsbuild.config.ts` 패턴)
-- Claude API 키는 서버 전용 env(`ANTHROPIC_API_KEY`)로만 접근, 클라이언트 번들에 절대 포함되지 않도록 함
+- Gemini API 키는 서버 전용 env(`GEMINI_API_KEY`)로만 접근, 클라이언트 번들에 절대 포함되지 않도록 함
+- Google AI Studio(aistudio.google.com)에서 무료로 API 키 발급 가능. 무료 티어는 모델별 분당/일일 요청 한도가 있으므로 사용자 증가 시 유료 티어 전환 필요
 
 ### 3.4 알람/푸시 구현 전략
 
@@ -302,10 +304,12 @@ Response:
 
 ## 다음 단계
 
-이 문서는 기획·BM·기술·배포 관점의 통합 계획이다. 실제 구현에 착수할 때는 다음 순서를 권장한다.
+이 문서는 기획·BM·기술·배포 관점의 통합 계획이다. 진행 현황과 남은 순서는 다음과 같다.
 
-1. `granite.config.ts` / `rsbuild.config.ts` / 기본 React 골격 스캐폴딩(`toss-coin-jump`, `dawn-peach`와 동일 패턴) — 요청 시 바로 착수 가능
-2. 온보딩 → 홈 → 루틴 생성 대기까지 코어 플로우 프로토타입(AI 연동 전, 더미 루틴 데이터로 먼저 검증)
-3. `api/routine.ts` 구현 및 Claude API 연동
-4. 광고 SDK 연동(배너 → 전면 → 보상형 순으로 단계적 적용)
-5. IAP 구독 연동은 무료 사용자 데이터/피드백 축적 이후 착수
+1. ~~`granite.config.ts` / `rsbuild.config.ts` / 기본 React 골격 스캐폴딩~~ — 완료
+2. ~~온보딩 → 홈 → 루틴 생성 대기까지 코어 플로우 프로토타입(더미 루틴 데이터)~~ — 완료
+3. ~~`api/routine.ts` 구현 및 Gemini API 연동~~ — 완료(코드 반영), **`GEMINI_API_KEY` 환경변수 설정만 남음**
+4. Vercel 배포 연결 — CLI로 1차 배포 완료(https://fit-mate-cyan.vercel.app), GitHub 저장소 자동 연결은 별도 승인 필요
+5. 광고 SDK 연동(배너 → 전면 → 보상형 순으로 단계적 적용)
+6. 토스 파트너 콘솔 앱 등록 및 광고 슬롯/알림 템플릿 코드 발급
+7. IAP 구독 연동은 무료 사용자 데이터/피드백 축적 이후 착수

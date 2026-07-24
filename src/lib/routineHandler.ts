@@ -3,7 +3,8 @@
 
 import type { Exercise, FitnessGoal, FitnessLevel, Routine, TargetArea } from '../types';
 
-const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL ?? 'claude-haiku-4-5-20251001';
+// Gemini 무료 티어에서 가장 한도가 넉넉한 모델을 기본값으로 사용한다.
+const GEMINI_MODEL = process.env.GEMINI_MODEL ?? 'gemini-2.5-flash-lite';
 
 const GOAL_LABELS: Record<FitnessGoal, string> = {
   weight_loss: '체중 감량',
@@ -37,10 +38,10 @@ export async function handleRoutineRequest({
     };
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
-    // Claude API 키가 아직 설정되지 않은 개발 초기 단계에서도
+    // Gemini API 키가 아직 설정되지 않은 개발 초기 단계에서도
     // 화면 흐름을 확인할 수 있도록 더미 루틴을 반환한다.
     return { status: 200, body: buildDummyRoutine(fitnessLevel, targetAreas) };
   }
@@ -62,35 +63,47 @@ async function generateRoutineWithAI(
 ): Promise<Routine> {
   const areaLabels = targetAreas.map((area) => AREA_LABELS[area]).join(', ');
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: ANTHROPIC_MODEL,
-      max_tokens: 1024,
-      tools: [
-        {
-          name: 'return_routine',
-          description: '오늘의 운동 루틴을 구조화된 형식으로 반환해요.',
-          input_schema: {
-            type: 'object',
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+    {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-goog-api-key': apiKey,
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              {
+                text: [
+                  `체력 수준: ${fitnessLevel}`,
+                  `운동 목적: ${GOAL_LABELS[goal]}`,
+                  `선호 부위: ${areaLabels}`,
+                  '위 조건에 맞는 오늘의 운동 루틴을 5~6개 동작으로 구성해줘. 각 동작은 세트/진행시간/휴식시간을 포함해야 해.',
+                ].join('\n'),
+              },
+            ],
+          },
+        ],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: 'OBJECT',
             properties: {
-              estimatedMinutes: { type: 'number' },
+              estimatedMinutes: { type: 'NUMBER' },
               exercises: {
-                type: 'array',
+                type: 'ARRAY',
                 items: {
-                  type: 'object',
+                  type: 'OBJECT',
                   properties: {
-                    name: { type: 'string' },
-                    targetArea: { type: 'string', enum: Object.keys(AREA_LABELS) },
-                    sets: { type: 'number' },
-                    durationSec: { type: 'number' },
-                    restSec: { type: 'number' },
-                    notes: { type: 'string' },
+                    name: { type: 'STRING' },
+                    targetArea: { type: 'STRING', enum: Object.keys(AREA_LABELS) },
+                    sets: { type: 'NUMBER' },
+                    durationSec: { type: 'NUMBER' },
+                    restSec: { type: 'NUMBER' },
+                    notes: { type: 'STRING' },
                   },
                   required: ['name', 'targetArea', 'sets', 'durationSec', 'restSec'],
                 },
@@ -99,39 +112,29 @@ async function generateRoutineWithAI(
             required: ['estimatedMinutes', 'exercises'],
           },
         },
-      ],
-      tool_choice: { type: 'tool', name: 'return_routine' },
-      messages: [
-        {
-          role: 'user',
-          content: [
-            `체력 수준: ${fitnessLevel}`,
-            `운동 목적: ${GOAL_LABELS[goal]}`,
-            `선호 부위: ${areaLabels}`,
-            '위 조건에 맞는 오늘의 운동 루틴을 5~6개 동작으로 구성해줘. 각 동작은 세트/진행시간/휴식시간을 포함해야 해.',
-          ].join('\n'),
-        },
-      ],
-    }),
-  });
+      }),
+    }
+  );
 
   if (!response.ok) {
-    throw new Error(`Claude API 호출 실패: ${response.status}`);
+    throw new Error(`Gemini API 호출 실패: ${response.status}`);
   }
 
   const data = (await response.json()) as {
-    content: { type: string; input?: { estimatedMinutes: number; exercises: Exercise[] } }[];
+    candidates?: { content: { parts: { text?: string }[] } }[];
   };
-  const toolUse = data.content.find((block) => block.type === 'tool_use');
-  if (!toolUse?.input) {
-    throw new Error('Claude 응답에서 루틴 데이터를 찾지 못했어요.');
+  const text = data.candidates?.[0]?.content.parts[0]?.text;
+  if (!text) {
+    throw new Error('Gemini 응답에서 루틴 데이터를 찾지 못했어요.');
   }
+
+  const parsed = JSON.parse(text) as { estimatedMinutes: number; exercises: Exercise[] };
 
   return {
     routineId: `ai_${Date.now()}`,
-    estimatedMinutes: toolUse.input.estimatedMinutes,
+    estimatedMinutes: parsed.estimatedMinutes,
     difficulty: fitnessLevel,
-    exercises: toolUse.input.exercises,
+    exercises: parsed.exercises,
   };
 }
 
@@ -148,7 +151,7 @@ function buildDummyRoutine(fitnessLevel: FitnessLevel, targetAreas: TargetArea[]
         sets: 3,
         durationSec: 40,
         restSec: 20,
-        notes: 'ANTHROPIC_API_KEY 설정 후 실제 AI 루틴으로 교체돼요',
+        notes: 'GEMINI_API_KEY 설정 후 실제 AI 루틴으로 교체돼요',
       },
       {
         name: '스쿼트',
