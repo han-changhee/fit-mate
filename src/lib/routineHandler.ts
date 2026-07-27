@@ -3,8 +3,9 @@
 
 import type { Exercise, FitnessGoal, FitnessLevel, Routine, TargetArea } from '../types';
 
-// Gemini 무료 티어에서 가장 한도가 넉넉한 모델을 기본값으로 사용한다.
-const GEMINI_MODEL = process.env.GEMINI_MODEL ?? 'gemini-2.5-flash-lite';
+// gemini-2.5-flash-lite는 신규 프로젝트에는 더 이상 제공되지 않아(404),
+// 실제로 이 프로젝트의 키로 호출 가능함을 확인한 모델을 기본값으로 쓴다.
+const GEMINI_MODEL = process.env.GEMINI_MODEL ?? 'gemini-2.0-flash-lite';
 
 const GOAL_LABELS: Record<FitnessGoal, string> = {
   weight_loss: '체중 감량',

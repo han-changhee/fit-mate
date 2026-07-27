@@ -1,9 +1,18 @@
+import { dirname } from 'node:path';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { defineConfig } from '@rsbuild/core';
+import { fileURLToPath } from 'node:url';
+import { defineConfig, loadEnv } from '@rsbuild/core';
 import { pluginReact } from '@rsbuild/plugin-react';
 import { pluginTailwindcss } from '@rsbuild/plugin-tailwindcss';
 import { handleRoutineRequest } from './src/lib/routineHandler';
 import type { FitnessGoal, FitnessLevel, TargetArea } from './src/types';
+
+// rsbuild는 .env.local을 클라이언트 번들 주입용으로만 다루고 Node 프로세스의
+// process.env는 자동으로 채우지 않는다. 아래 dev 미들웨어가 process.env.GEMINI_API_KEY를
+// 직접 읽으므로, 서버가 요청을 받기 전에 .env* 파일을 process.env로 로드해둔다.
+// `npm --prefix fit-mate run dev`처럼 다른 디렉터리에서 실행되면 process.cwd()가
+// 이 프로젝트 루트가 아닐 수 있어, 이 설정 파일 자신의 위치를 기준으로 삼는다.
+loadEnv({ cwd: dirname(fileURLToPath(import.meta.url)) });
 
 function readJsonBody(req: IncomingMessage): Promise<Record<string, unknown>> {
   return new Promise((resolve) => {
