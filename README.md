@@ -4,6 +4,7 @@
 
 - 배포: https://fit-mate-cyan.vercel.app
 - 마스터 플랜(기획/BM/기술/배포): [docs/MASTER_PLAN.md](./docs/MASTER_PLAN.md)
+- 서비스 이용약관(초안, 법률 검토 필요): [docs/TERMS_OF_SERVICE.md](./docs/TERMS_OF_SERVICE.md)
 - Claude Code로 이어서 작업할 때 자동으로 읽히는 프로젝트 컨텍스트: [CLAUDE.md](./CLAUDE.md)
 
 ## 시작하기
@@ -58,6 +59,7 @@ GitHub 저장소를 Vercel에 Git 연동(푸시할 때마다 자동 배포)하�
 자세한 내용과 다음 할 일은 [CLAUDE.md](./CLAUDE.md)의 "현재 진행 상황"을 참고하세요. 요약:
 
 - ✅ 화면 8개 스켈레톤 완성, Vercel 배포 완료
-- ✅ Gemini API 연동 코드 완료
-- ⬜ `GEMINI_API_KEY` 환경변수 설정 (로컬/Vercel 둘 다 아직 없음)
+- ✅ Gemini API 연동 완료(로컬/프로덕션 모두 실제 AI 루틴 생성 확인됨)
+- ✅ 서비스 이용약관 초안 작성(법률 검토 전)
+- ⬜ 토스 로그인 연동, 개인정보처리방침 작성
 - ⬜ 토스 파트너 콘솔 등록, 광고 슬롯/알림 템플릿 코드 발급
