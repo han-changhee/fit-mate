@@ -72,10 +72,11 @@ function currentKstHHmm(): string {
 }
 
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
-  // Vercel Cron은 CRON_SECRET을 설정해두면 Authorization: Bearer {CRON_SECRET} 헤더를
-  // 자동으로 붙여준다. 아무나 이 엔드포인트를 호출해서 알림을 뿌리지 못하도록 검증한다.
+  // QStash 콘솔의 커스텀 헤더 UI가 불안정해서, 헤더 대신 쿼리 파라미터(?secret=...)로
+  // 검증한다. 아무나 이 엔드포인트를 호출해서 알림을 뿌리지 못하도록 막는 용도.
   const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret && req.headers.authorization !== `Bearer ${cronSecret}`) {
+  const requestSecret = new URL(req.url ?? '', 'http://localhost').searchParams.get('secret');
+  if (cronSecret && requestSecret !== cronSecret) {
     res.statusCode = 401;
     res.end('Unauthorized');
     return;
