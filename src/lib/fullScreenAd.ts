@@ -1,12 +1,31 @@
 import { loadFullScreenAd, showFullScreenAd } from '@apps-in-toss/web-framework';
 import { isFullScreenAdSupported } from './adSupport';
 
-// 전면 광고는 반드시 사용자의 탭(버튼 클릭) 같은 실제 사용자 동작 문맥에서 곧바로
-// 호출해야 한다. 화면 전환 후 useEffect 안에서 비동기로 호출하면 광고 SDK가
-// 웹뷰를 리로드시키는 등 예상과 다르게 동작해 화면 상태가 초기화될 수 있다
-// (루틴 생성 대기 화면에서 광고 후 홈으로 돌아가버리는 문제로 실제 확인됨).
-export function showFullScreenAdIfAvailable(adGroupId: string | undefined): void {
-  if (!adGroupId || !isFullScreenAdSupported()) return;
+// 광고 슬롯이 없거나, 로드/노출에 실패하거나, 사용자가 닫으면 항상 onDone을 정확히
+// 한 번만 호출한다. 광고 SDK 이벤트가 어떤 이유로든 오지 않는 경우를 대비해 타임아웃
+// 폴백도 둔다 — 화면 전환이 광고 콜백에 의존하므로, 콜백이 아예 안 오면 로딩 화면에
+// 영원히 멈춰있게 되는 걸 막기 위함이다.
+export function showFullScreenAdIfAvailable(
+  adGroupId: string | undefined,
+  onDone: () => void
+): void {
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    onDone();
+  };
+
+  if (!adGroupId || !isFullScreenAdSupported()) {
+    finish();
+    return;
+  }
+
+  const timeoutId = setTimeout(finish, 8000);
+  const finishOnce = () => {
+    clearTimeout(timeoutId);
+    finish();
+  };
 
   try {
     loadFullScreenAd({
@@ -15,18 +34,20 @@ export function showFullScreenAdIfAvailable(adGroupId: string | undefined): void
         try {
           showFullScreenAd({
             options: { adGroupId },
-            onEvent: () => {},
-            onError: () => {},
+            onEvent: (data) => {
+              if (data.type === 'dismissed' || data.type === 'failedToShow') {
+                finishOnce();
+              }
+            },
+            onError: finishOnce,
           });
         } catch {
-          // 노출 실패는 무시한다.
+          finishOnce();
         }
       },
-      onError: () => {
-        // 로드 실패는 무시한다.
-      },
+      onError: finishOnce,
     });
   } catch {
-    // 초기화 전 호출 등으로 인한 예외는 무시한다.
+    finishOnce();
   }
 }

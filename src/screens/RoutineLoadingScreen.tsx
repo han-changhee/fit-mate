@@ -1,8 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { AdZone } from '../components/AdZone';
 import { fetchRoutine } from '../lib/routineApi';
+import { showFullScreenAdIfAvailable } from '../lib/fullScreenAd';
 import type { Routine, UserProfile } from '../types';
 
+const ROUTINE_LOADING_AD_GROUP_ID = import.meta.env.PUBLIC_ROUTINE_LOADING_AD_GROUP_ID;
 const HOME_BANNER_AD_GROUP_ID = import.meta.env.PUBLIC_HOME_BANNER_AD_GROUP_ID;
 
 interface RoutineLoadingScreenProps {
@@ -11,9 +13,10 @@ interface RoutineLoadingScreenProps {
   onError: () => void;
 }
 
-// 전면 광고는 닫으면 다시 이 로딩 화면으로 돌아오는 게 부자연스러워서 쓰지 않는다.
-// 대신 AI가 루틴을 계산하는 동안 화면에 배너형 광고 존만 보여주고, 광고 노출/실패
-// 여부와 무관하게 루틴 fetch는 계속 진행된다.
+// 로딩바(AI 생성 대기) -> 전면광고 -> 오늘의 루틴 순서로 진행한다. 광고를 먼저
+// 띄우면 닫았을 때 아직 로딩 중인 이 화면이 다시 보여 어색하므로, 루틴이 준비된
+// 뒤에만 광고를 띄우고 광고가 끝나야(또는 광고가 없으면 곧바로) 다음 화면으로
+// 넘어간다.
 export function RoutineLoadingScreen({ profile, onLoaded, onError }: RoutineLoadingScreenProps) {
   const startedRef = useRef(false);
 
@@ -21,7 +24,11 @@ export function RoutineLoadingScreen({ profile, onLoaded, onError }: RoutineLoad
     if (startedRef.current) return;
     startedRef.current = true;
 
-    fetchRoutine(profile).then(onLoaded).catch(onError);
+    fetchRoutine(profile)
+      .then((routine) => {
+        showFullScreenAdIfAvailable(ROUTINE_LOADING_AD_GROUP_ID, () => onLoaded(routine));
+      })
+      .catch(onError);
   }, [profile, onLoaded, onError]);
 
   return (

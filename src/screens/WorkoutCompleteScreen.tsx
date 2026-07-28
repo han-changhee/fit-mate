@@ -15,7 +15,7 @@ export function WorkoutCompleteScreen({
   onShowHistory,
 }: WorkoutCompleteScreenProps) {
   const handleWatchReward = () => {
-    showFullScreenAdIfAvailable(REWARD_AD_GROUP_ID);
+    showFullScreenAdIfAvailable(REWARD_AD_GROUP_ID, () => {});
   };
 
   const handleShare = () => {
