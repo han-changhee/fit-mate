@@ -1,7 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { fetchRoutine } from '../lib/routineApi';
 import { savePendingRoutine } from '../lib/pendingRoutine';
+import { showFullScreenAdIfAvailable } from '../lib/fullScreenAd';
 import type { Routine, UserProfile } from '../types';
+
+const ROUTINE_LOADING_AD_GROUP_ID = import.meta.env.PUBLIC_ROUTINE_LOADING_AD_GROUP_ID;
 
 interface RoutineLoadingScreenProps {
   profile: UserProfile;
@@ -9,9 +12,10 @@ interface RoutineLoadingScreenProps {
   onError: () => void;
 }
 
-// 전면 광고는 이 화면이 아니라 홈 화면의 "루틴 생성하기" 버튼 클릭 시점에 띄운다
-// (src/lib/fullScreenAd.ts 참고) — 이 화면은 순수하게 루틴 데이터를 받아오는
-// 역할만 한다.
+// 전면 광고를 닫으면 토스 웹뷰가 리로드되면서 화면 상태가 날아가는 게 실기기에서
+// 확인됐다. 그래서 광고는 루틴을 다 받아오고 로컬에 안전하게 저장까지 끝낸
+// "이후"에만 띄운다 — 저장이 끝나기 전에 광고를 보여주면, 사용자가 광고를 빨리
+// 닫을 경우 저장이 채 끝나기도 전에 리로드가 나서 복구할 데이터가 없어진다.
 export function RoutineLoadingScreen({ profile, onLoaded, onError }: RoutineLoadingScreenProps) {
   const startedRef = useRef(false);
 
@@ -20,9 +24,8 @@ export function RoutineLoadingScreen({ profile, onLoaded, onError }: RoutineLoad
     startedRef.current = true;
     fetchRoutine(profile)
       .then((routine) => {
-        // 광고를 닫을 때 웹뷰가 리로드돼 이 화면의 메모리 상태가 날아갈 수 있어,
-        // 받아온 루틴을 먼저 저장해둔다(App.tsx가 재시작 시 복구한다).
         savePendingRoutine(routine);
+        showFullScreenAdIfAvailable(ROUTINE_LOADING_AD_GROUP_ID);
         onLoaded(routine);
       })
       .catch(onError);
