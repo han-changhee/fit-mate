@@ -19,7 +19,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - **재활성화 방법**: `src/App.tsx`에서 `useAuth`/`LoginScreen` import와 `session` 관련 3개 블록(로딩/게이트/handleWithdraw) 주석을 풀고, `useUserProfile()`/`useStreak()` 구조분해에 `clearProfile`/`resetStreak`를 다시 추가하고, `SettingsScreen` 호출부를 `onWithdraw={handleWithdraw}`로 바꾸면 된다. `SettingsScreen.tsx`에서도 `onWithdraw` prop과 탈퇴 UI 블록 주석을 풀어야 한다.
   - **재활성화가 의미 있어지는 시점**: DB를 붙여서 (1) `authorizationCode`를 토스 OAuth 토큰 교환 API로 실제 신원 확인(`TOSS_CLIENT_ID`/`TOSS_CLIENT_SECRET` 필요), (2) 여러 기기 간 데이터 동기화, (3) 구독 결제를 특정 사용자에 귀속 등을 하고 싶을 때.
 - [ ] 광고 SDK(TossAds) 실제 슬롯 미연동 — `adGroupId` prop이 비어있으면 컴포넌트가 자동으로 숨겨지는 상태
-- [ ] 토스 파트너 콘솔 앱 등록, 광고 슬롯/알림 템플릿 코드/`TOSS_CLIENT_ID`·`TOSS_CLIENT_SECRET` 발급
+- [x] 토스 파트너 콘솔에서 알림(스마트 발송 > 기능성) 등록 완료 — 발송 코드 `fit-mate-reminder`, `PUBLIC_NOTIFICATION_TEMPLATE_CODE`로 로컬/프로덕션 반영됨
+- [x] mTLS 인증서 발급 및 서버 연동 완료 — `api/notifications/send-test.ts`(Node.js 런타임, mTLS 필요해서 Edge 불가)에서 실제 토스 스마트 발송 API(`POST .../messenger/send-message`) 호출 확인됨(더미 `anonKey`로 "인증 정보를 찾을 수 없어요" 에러까지 받아서 mTLS 자체는 통과하는 것 확인)
+  - API 스펙: https://developers-apps-in-toss.toss.im/documentation/common/growth/smart-message . 인증은 `x-anon-key`(또는 `x-user-key`) 헤더 + mTLS 클라이언트 인증서 둘 다 필요. `TOSS_MTLS_CERT`/`TOSS_MTLS_PRIVATE_KEY`는 base64로 인코딩해 env var에 저장(PEM 줄바꿈이 CLI 파이프 과정에서 깨지는 걸 피하려고).
+  - **주의**: Node 런타임 함수는 `src/lib`의 다른 파일을 import하면 `ERR_MODULE_NOT_FOUND`로 죽는다(package.json이 `"type": "module"`이라 Node 네이티브 ESM 로더가 확장자 없는 상대경로를 못 찾음 — Edge Function은 esbuild 번들링이라 문제없었음). Node 런타임 함수는 로직을 파일 안에 인라인으로 넣을 것.
+- [x] Upstash Redis 연결 완료(`UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN`) — `api/reminders/save.ts`에서 `anonKey -> reminderTime` 저장 확인됨. Vercel Storage 탭의 마켓플레이스 연동(Upstash, Redis Cloud 둘 다)은 무료 티어가 없어서, console.upstash.com에서 직접 만든 무료 인스턴스를 수동으로 연결했다.
+- [ ] **클라이언트에서 아직 이 저장 엔드포인트를 안 씀** — `SettingsScreen.tsx`는 여전히 리마인더 시간을 로컬(Storage/localStorage)에만 저장한다. `getAnonymousKey()`로 익명 키를 받아서 `/api/reminders/save`로 보내는 연동이 필요하다(로그인 없이 가능 — `getAnonymousKey()`는 로그인과 무관한 별도 SDK 함수).
+- [ ] **실제 발송 스케줄러(cron) 없음** — Redis에 저장은 되지만, 저장된 시간이 됐을 때 `api/notifications/send-test.ts`의 발송 로직을 실제로 트리거해주는 주기적 작업이 아직 없다. Vercel Cron 설정 필요(무료 Hobby 플랜은 크론 주기가 하루 1회로 제한될 수 있음 — 사용자 확인 필요).
 - [ ] IAP 구독 연동 — 무료 사용자 데이터 축적 이후로 보류 중
 
 ## Commands
