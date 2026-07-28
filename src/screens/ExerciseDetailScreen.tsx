@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AdBanner } from '../components/AdBanner';
+import { ExerciseGuideBox } from '../components/ExerciseGuideBox';
 import type { Exercise } from '../types';
 
 const WORKOUT_BANNER_AD_GROUP_ID = import.meta.env.PUBLIC_WORKOUT_BANNER_AD_GROUP_ID;
@@ -54,6 +55,12 @@ export function ExerciseDetailScreen({
       </h1>
       {exercise.notes && phase === 'active' && (
         <p className="mt-2 text-center text-sm text-zinc-500">{exercise.notes}</p>
+      )}
+
+      {phase === 'active' && (
+        <div className="mt-4">
+          <ExerciseGuideBox exerciseName={exercise.name} />
+        </div>
       )}
 
       <div className="flex flex-1 flex-col items-center justify-center gap-8">

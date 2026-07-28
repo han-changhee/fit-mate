@@ -88,6 +88,8 @@ async function generateRoutineWithAI(
                   '각 동작은 시간으로 재는 게 자연스러우면 mode를 "time"으로 하고 durationSec을 채우고,',
                   '횟수로 세는 게 자연스러우면(예: 스쿼트, 크런치) mode를 "reps"로 하고 reps를 채워줘.',
                   '두 모드를 적절히 섞어서 구성해줘. sets, restSec은 모든 동작에 항상 포함해야 해.',
+                  'name과 notes는 반드시 한국어로만 작성해줘. 영어 운동 이름(Plank, Bird Dog 등)이나',
+                  '로마자 표기를 절대 쓰지 말고, "플랭크", "버드 독"처럼 한글 명칭만 사용해줘.',
                 ].join('\n'),
               },
             ],

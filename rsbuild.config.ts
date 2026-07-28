@@ -6,6 +6,7 @@ import { pluginReact } from '@rsbuild/plugin-react';
 import { pluginTailwindcss } from '@rsbuild/plugin-tailwindcss';
 import { handleRoutineRequest } from './src/lib/routineHandler';
 import { handleTossAuthRequest } from './src/lib/authHandler';
+import { handleExerciseGuideRequest } from './src/lib/exerciseGuideHandler';
 import type { FitnessGoal, FitnessLevel, TargetArea } from './src/types';
 
 // rsbuild는 .env.local을 클라이언트 번들 주입용으로만 다루고 Node 프로세스의
@@ -70,6 +71,20 @@ export default defineConfig({
           const { status, body } = await handleTossAuthRequest({
             authorizationCode: (payload.authorizationCode as string | undefined) ?? null,
             referrer: (payload.referrer as string | undefined) ?? null,
+          });
+          res.statusCode = status;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify(body));
+        }
+      );
+
+      // 프로덕션에서는 api/exercise-guide.ts(Vercel Edge Function)가 이 요청을 처리한다.
+      context.server.middlewares.use(
+        '/api/exercise-guide',
+        async (req: IncomingMessage, res: ServerResponse) => {
+          const payload = await readJsonBody(req);
+          const { status, body } = await handleExerciseGuideRequest({
+            name: (payload.name as string | undefined) ?? null,
           });
           res.statusCode = status;
           res.setHeader('Content-Type', 'application/json');
