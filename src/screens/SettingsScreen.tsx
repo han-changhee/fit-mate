@@ -7,6 +7,21 @@ import { saveReminderTime } from '../lib/reminderApi';
 const STORAGE_KEY = 'REMINDER_TIME';
 const DEFAULT_REMINDER_TIME = '19:00';
 
+// 발송 스케줄러(cron)가 15분 간격으로만 도는 무료 티어라, 그 시각과 정확히
+// 일치해야 알림이 울린다. 브라우저 시간 선택기가 15분 단위를 무시하고 값을
+// 넘기는 경우에도 안전하도록 항상 가까운 15분 단위로 반올림해서 저장한다.
+function roundToNearest15(value: string): string {
+  const [hourStr, minuteStr] = value.split(':');
+  const hour = Number(hourStr);
+  const minute = Number(minuteStr);
+  if (Number.isNaN(hour) || Number.isNaN(minute)) return value;
+
+  const totalMinutes = (hour * 60 + Math.round(minute / 15) * 15) % (24 * 60);
+  const roundedHour = Math.floor(totalMinutes / 60);
+  const roundedMinute = totalMinutes % 60;
+  return `${String(roundedHour).padStart(2, '0')}:${String(roundedMinute).padStart(2, '0')}`;
+}
+
 interface SettingsScreenProps {
   onBack: () => void;
   // 회원탈퇴 비활성화 — 아래 JSX/handleWithdraw 주석과 함께 재활성화할 것
@@ -25,7 +40,8 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
       });
   }, []);
 
-  const handleChange = (value: string) => {
+  const handleChange = (rawValue: string) => {
+    const value = roundToNearest15(rawValue);
     setReminderTime(value);
     Storage.setItem(STORAGE_KEY, value).catch(() =>
       window.localStorage.setItem(STORAGE_KEY, value)
@@ -56,11 +72,15 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
         <p className="text-sm font-medium text-gray-700">운동 알림 시간</p>
         <input
           type="time"
+          step={900}
           value={reminderTime}
           onChange={(event) => handleChange(event.target.value)}
           className="mt-3 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
         />
         <p className="mt-2 text-xs text-gray-400">
+          15분 단위(정각/15분/30분/45분)로만 설정할 수 있어요.
+        </p>
+        <p className="mt-1 text-xs text-gray-400">
           알림을 실제로 받으려면 아래에서 알림 동의가 필요해요.
         </p>
       </div>
