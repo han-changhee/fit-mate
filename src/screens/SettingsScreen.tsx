@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Storage } from '@apps-in-toss/web-framework';
 import { NotificationSubscribeButton } from '../components/NotificationSubscribeButton';
+import { fetchAnonymousKey } from '../lib/anonymousKey';
+import { saveReminderTime } from '../lib/reminderApi';
 
 const STORAGE_KEY = 'REMINDER_TIME';
 const DEFAULT_REMINDER_TIME = '19:00';
@@ -28,6 +30,13 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
     Storage.setItem(STORAGE_KEY, value).catch(() =>
       window.localStorage.setItem(STORAGE_KEY, value)
     );
+
+    // 서버에도 저장해야 알림 스케줄러가 이 시간을 알 수 있다. 익명 키를 못
+    // 받아오거나 서버 저장이 실패해도 로컬 값은 이미 반영됐으니 조용히 넘어간다.
+    fetchAnonymousKey().then((anonKey) => {
+      if (!anonKey) return;
+      saveReminderTime(anonKey, value).catch(() => {});
+    });
   };
 
   // const handleWithdraw = () => {
