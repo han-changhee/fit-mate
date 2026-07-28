@@ -6,7 +6,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 "핏메이트" (FitMate) — 토스 인앱(Apps in Toss) 미니앱으로 동작하는 AI 개인화 운동 루틴 추천 웹앱. `@apps-in-toss/web-framework` 기반 React 앱이며 Vercel에 배포되어 있다. 전체 기획/BM/아키텍처/배포 전략은 [docs/MASTER_PLAN.md](docs/MASTER_PLAN.md)에 정리되어 있다 — 새 기능을 논의하기 전에 먼저 참고할 것.
 
-## 현재 진행 상황 (2026-07-28 기준)
+## 현재 진행 상황 (2026-07-29 기준)
+
+- [x] **Athletic & Energetic 다크/네온 리디자인** — 전체 화면(홈/온보딩/루틴미리보기/설정/기록/완료/에러바운더리 등) 배경을 `bg-black`, 텍스트를 `text-white`, 카드/보더를 `zinc-900`/`zinc-800`, 주요 액션 버튼을 `lime-400`(black 텍스트), 보조 액션을 `cyan-400`으로 통일. 강한 임팩트를 위해 헤딩은 `font-black uppercase tracking-tight` 조합을 기본으로 사용.
+- [x] **로딩 화면 → 광고 존 전환** — `RoutineLoadingScreen.tsx`가 더 이상 단순 스피너가 아니라 `src/components/AdZone.tsx`(배너 광고 + "Sponsored" 라벨)를 보여주면서 동시에 `showFullScreenAdIfAvailable`(전면광고)와 `fetchRoutine`을 병렬로 실행한다. 광고 SDK가 없는 일반 브라우저에서는 "Sponsored" 플레이스홀더만 보이는 게 정상.
+- [x] **"운동 시작하기" 버튼 제거 → 운동별 탭/카드 플로우** — `RoutinePreviewScreen.tsx`는 이제 운동 카드 목록만 보여주고(완료 시 ✓ 뱃지), 카드를 탭하면 `ExerciseDetailScreen.tsx`로 이동해 그 운동 하나만의 타이머(`mode: 'time'`) 또는 횟수 카운터(`mode: 'reps'`) UI를 보여준다. `Exercise` 타입에 `mode`/`durationSec`/`reps` 필드 추가(`src/types/index.ts`), Gemini 프롬프트/스키마도 갱신(`src/lib/routineHandler.ts`). 기존 `WorkoutSessionScreen.tsx`(전체 루틴 자동 진행 방식)는 삭제.
+  - `App.tsx`가 `completedIndices`/`activeExerciseIndex`로 진행 상태를 관리하며, 각 운동 완료 시 목록으로 복귀하거나(남은 운동 있음) 전체 완료 화면으로 이동(모두 완료).
+- [x] **운동 이름 한글 강제 + 자세 가이드(텍스트) 기능 추가** — Gemini 루틴 생성 프롬프트에 "name/notes는 반드시 한국어로만" 지시를 추가해 영어 운동명(Plank, Bird Dog 등)이 섞이는 문제를 해결. 각 운동 상세 화면(`ExerciseDetailScreen.tsx`)에 접이식 "자세 가이드 보기" 박스(`src/components/ExerciseGuideBox.tsx`)를 추가했고, 같은 운동 이름이면 Gemini를 다시 호출하지 않고 Upstash Redis 캐시(`guide:{운동이름}`)를 모든 사용자가 공유하도록 구현(`src/lib/exerciseGuideHandler.ts`, `api/exercise-guide.ts`). 이미지 가이드는 비용/인프라 부담 때문에 이번 범위에서는 제외(텍스트 가이드만).
+  - **테스트 시 주의**: 로컬 dev 서버(`npm run dev`)에서 AI 루틴/자세 가이드를 테스트해도 실제로는 **프로덕션 API**(`https://fit-mate-cyan.vercel.app`)를 호출한다(`src/lib/apiBase.ts`의 `API_BASE_URL`이 절대 URL로 고정돼있기 때문 — `.ait` 오프라인 번들 이슈 대응책). 즉 `routineHandler.ts`/`exerciseGuideHandler.ts`를 수정한 뒤 실제로 반영된 걸 확인하려면 **Vercel 프로덕션에 배포까지 해야** 한다. 로컬 dev 미들웨어(`rsbuild.config.ts`의 `server.setup`)는 curl로 직접 두들겨볼 때만 쓸모 있고, 브라우저 클릭 테스트에는 반영되지 않는다.
+  - 로컬 `.env.local`에는 `UPSTASH_REDIS_REST_URL`/`TOKEN`이 없어서(프로덕션 Vercel env에만 있음), 로컬 dev 미들웨어로 `/api/exercise-guide`를 호출하면 항상 폴백 가이드가 나온다 — 정상 동작 확인은 프로덕션 배포 후 curl로 할 것.
+
+## 이전 진행 상황 (2026-07-28 기준)
 
 - [x] 프로젝트 스켈레톤 완성 — 온보딩/홈/루틴생성대기/루틴미리보기/운동세션/완료/기록/설정 8개 화면 모두 구현, 브라우저에서 전체 플로우 클릭 테스트 완료
 - [x] Vercel 프로젝트 연결 및 배포 완료 — https://fit-mate-cyan.vercel.app (production)
