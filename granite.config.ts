@@ -13,8 +13,8 @@ export default defineConfig({
   permissions: [],
   outdir: 'dist',
   brand: {
-    displayName: '핏메이트',
-    icon: 'https://via.placeholder.com/180x180.png?text=%F0%9F%8F%83',
+    displayName: '피트메이트',
+    icon: 'https://fit-mate-cyan.vercel.app/icon.png',
     primaryColor: '#3182F6',
   },
   webViewProps: {
