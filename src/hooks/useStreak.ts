@@ -41,5 +41,10 @@ export function useStreak() {
     });
   }, []);
 
-  return { streak, markCompletedToday };
+  const resetStreak = useCallback(() => {
+    Storage.removeItem(STORAGE_KEY).catch(() => window.localStorage.removeItem(STORAGE_KEY));
+    setStreak({ count: 0, lastCompletedDate: null });
+  }, []);
+
+  return { streak, markCompletedToday, resetStreak };
 }

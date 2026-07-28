@@ -26,5 +26,10 @@ export function useUserProfile() {
     setProfile(next);
   }, []);
 
-  return { profile, saveProfile };
+  const clearProfile = useCallback(() => {
+    Storage.removeItem(STORAGE_KEY).catch(() => window.localStorage.removeItem(STORAGE_KEY));
+    setProfile(null);
+  }, []);
+
+  return { profile, saveProfile, clearProfile };
 }

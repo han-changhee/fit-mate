@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { TossAds } from '@apps-in-toss/web-framework';
 import { isAdInitSupported } from './lib/adSupport';
+import { useAuth } from './hooks/useAuth';
 import { useStreak } from './hooks/useStreak';
 import { useUserProfile } from './hooks/useUserProfile';
+import { LoginScreen } from './screens/LoginScreen';
 import { OnboardingScreen } from './screens/OnboardingScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { RoutineLoadingScreen } from './screens/RoutineLoadingScreen';
@@ -16,8 +18,9 @@ import type { Routine } from './types';
 type Screen = 'home' | 'loading' | 'preview' | 'session' | 'complete' | 'history' | 'settings';
 
 export default function App() {
-  const { profile, saveProfile } = useUserProfile();
-  const { streak, markCompletedToday } = useStreak();
+  const { session, login, logout } = useAuth();
+  const { profile, saveProfile, clearProfile } = useUserProfile();
+  const { streak, markCompletedToday, resetStreak } = useStreak();
   const [screen, setScreen] = useState<Screen>('home');
   const [routine, setRoutine] = useState<Routine | null>(null);
 
@@ -29,6 +32,22 @@ export default function App() {
       // 광고 초기화 실패는 앱 전체에 영향을 주면 안 되므로 무시한다.
     }
   }, []);
+
+  const handleWithdraw = () => {
+    clearProfile();
+    resetStreak();
+    logout();
+    setRoutine(null);
+    setScreen('home');
+  };
+
+  if (session === undefined) {
+    return <div className="min-h-screen" />;
+  }
+
+  if (session === null) {
+    return <LoginScreen onLoggedIn={login} />;
+  }
 
   if (profile === undefined) {
     return <div className="min-h-screen" />;
@@ -95,7 +114,9 @@ export default function App() {
   }
 
   if (screen === 'settings') {
-    return <SettingsScreen onBack={() => setScreen('home')} />;
+    return (
+      <SettingsScreen onBack={() => setScreen('home')} onWithdraw={handleWithdraw} />
+    );
   }
 
   return (
