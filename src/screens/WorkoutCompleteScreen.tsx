@@ -1,5 +1,5 @@
-import { loadFullScreenAd, share, showFullScreenAd } from '@apps-in-toss/web-framework';
-import { isFullScreenAdSupported } from '../lib/adSupport';
+import { share } from '@apps-in-toss/web-framework';
+import { showFullScreenAdIfAvailable } from '../lib/fullScreenAd';
 
 const REWARD_AD_GROUP_ID = import.meta.env.PUBLIC_REWARD_AD_GROUP_ID;
 
@@ -15,28 +15,7 @@ export function WorkoutCompleteScreen({
   onShowHistory,
 }: WorkoutCompleteScreenProps) {
   const handleWatchReward = () => {
-    if (!REWARD_AD_GROUP_ID || !isFullScreenAdSupported()) return;
-    try {
-      loadFullScreenAd({
-        options: { adGroupId: REWARD_AD_GROUP_ID },
-        onEvent: () => {
-          try {
-            showFullScreenAd({
-              options: { adGroupId: REWARD_AD_GROUP_ID },
-              onEvent: () => {},
-              onError: () => {},
-            });
-          } catch {
-            // 노출 실패는 무시한다.
-          }
-        },
-        onError: () => {
-          // 로드 실패는 무시한다.
-        },
-      });
-    } catch {
-      // 초기화 전 호출 등으로 인한 예외는 무시한다.
-    }
+    showFullScreenAdIfAvailable(REWARD_AD_GROUP_ID);
   };
 
   const handleShare = () => {

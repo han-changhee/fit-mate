@@ -1,6 +1,7 @@
 import { AdBanner } from '../components/AdBanner';
 import { NotificationSubscribeButton } from '../components/NotificationSubscribeButton';
 import { TARGET_AREAS } from '../constants/fitnessOptions';
+import { showFullScreenAdIfAvailable } from '../lib/fullScreenAd';
 import type { UserProfile } from '../types';
 
 function toAreaLabels(targetAreas: UserProfile['targetAreas']): string {
@@ -10,6 +11,7 @@ function toAreaLabels(targetAreas: UserProfile['targetAreas']): string {
 }
 
 const HOME_BANNER_AD_GROUP_ID = import.meta.env.PUBLIC_HOME_BANNER_AD_GROUP_ID;
+const ROUTINE_LOADING_AD_GROUP_ID = import.meta.env.PUBLIC_ROUTINE_LOADING_AD_GROUP_ID;
 
 interface HomeScreenProps {
   profile: UserProfile;
@@ -26,6 +28,12 @@ export function HomeScreen({
   onShowHistory,
   onShowSettings,
 }: HomeScreenProps) {
+  const handleStartRoutine = () => {
+    // 전면 광고는 사용자가 방금 누른 버튼 문맥에서 곧바로 호출해야 안정적으로 동작한다.
+    showFullScreenAdIfAvailable(ROUTINE_LOADING_AD_GROUP_ID);
+    onStartRoutine();
+  };
+
   return (
     <div className="flex min-h-screen flex-col gap-6 px-6 py-8">
       <div className="flex items-center justify-between">
@@ -47,7 +55,7 @@ export function HomeScreen({
         </p>
         <button
           type="button"
-          onClick={onStartRoutine}
+          onClick={handleStartRoutine}
           className="mt-6 w-full rounded-full bg-blue-500 py-3 text-sm font-bold text-white active:bg-blue-600"
         >
           오늘의 루틴 생성하기

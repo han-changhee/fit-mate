@@ -1,10 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { loadFullScreenAd, showFullScreenAd } from '@apps-in-toss/web-framework';
 import { fetchRoutine } from '../lib/routineApi';
-import { isFullScreenAdSupported } from '../lib/adSupport';
 import type { Routine, UserProfile } from '../types';
-
-const ROUTINE_LOADING_AD_GROUP_ID = import.meta.env.PUBLIC_ROUTINE_LOADING_AD_GROUP_ID;
 
 interface RoutineLoadingScreenProps {
   profile: UserProfile;
@@ -12,39 +8,15 @@ interface RoutineLoadingScreenProps {
   onError: () => void;
 }
 
+// 전면 광고는 이 화면이 아니라 홈 화면의 "루틴 생성하기" 버튼 클릭 시점에 띄운다
+// (src/lib/fullScreenAd.ts 참고) — 이 화면은 순수하게 루틴 데이터를 받아오는
+// 역할만 한다.
 export function RoutineLoadingScreen({ profile, onLoaded, onError }: RoutineLoadingScreenProps) {
   const startedRef = useRef(false);
 
   useEffect(() => {
     if (startedRef.current) return;
     startedRef.current = true;
-
-    // 전면 광고는 사용자가 루틴 생성을 기다리는 이 구간에만 노출한다.
-    // 광고 로드/노출 실패가 루틴 생성 흐름을 막으면 안 되므로 항상 감싼다.
-    if (ROUTINE_LOADING_AD_GROUP_ID && isFullScreenAdSupported()) {
-      try {
-        loadFullScreenAd({
-          options: { adGroupId: ROUTINE_LOADING_AD_GROUP_ID },
-          onEvent: () => {
-            try {
-              showFullScreenAd({
-                options: { adGroupId: ROUTINE_LOADING_AD_GROUP_ID },
-                onEvent: () => {},
-                onError: () => {},
-              });
-            } catch {
-              // 노출 실패는 무시한다.
-            }
-          },
-          onError: () => {
-            // 로드 실패는 무시한다.
-          },
-        });
-      } catch {
-        // 초기화 전 호출 등으로 인한 예외는 무시한다.
-      }
-    }
-
     fetchRoutine(profile).then(onLoaded).catch(onError);
   }, [profile, onLoaded, onError]);
 
