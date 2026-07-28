@@ -101,6 +101,7 @@
 |------|-----------|----------|----------------|------|
 | AI 루틴 생성 대기 화면 | 전면 광고 | `loadFullScreenAd()` → `showFullScreenAd()` | 세션당 1회, 최소 3분 간격 | 사용자가 대기 중이라 이탈 손실 최소, 체감 로딩 시간과 자연스럽게 겹침 |
 | 홈 화면 카드 사이 | 배너 | `TossAds.attachBanner(adGroupId, container, { theme: 'auto', variant: 'card' })` | 상시 노출, `onNoFill`/`onAdFailedToRender` 시 자동 숨김 | 콘텐츠 흐름 방해 최소화 위해 카드 사이 1곳만 |
+| 운동 진행(타이머) 화면 하단 | 배너 | `TossAds.attachBanner` | 상시, 실패 시 숨김 | 콘텐츠를 가리지 않는 하단 배너만 — 전면광고는 여전히 금지(공통 원칙 참고) |
 | 운동 완료 화면 | 보상형 동영상 | `loadFullScreenAd()`/`showFullScreenAd()`(리워드형 슬롯) | 사용자가 명시적으로 "보상받기" 탭할 때만 | 강제 노출 금지 — 옵트인만 |
 | 히스토리/통계 화면 하단 | 배너 | `TossAds.attachBanner` | 상시, 실패 시 숨김 | 부가 화면이라 낮은 우선순위 |
 

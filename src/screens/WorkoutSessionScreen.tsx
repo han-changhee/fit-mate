@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
+import { AdBanner } from '../components/AdBanner';
 import type { Routine } from '../types';
+
+const WORKOUT_BANNER_AD_GROUP_ID = import.meta.env.PUBLIC_WORKOUT_BANNER_AD_GROUP_ID;
 
 interface WorkoutSessionScreenProps {
   routine: Routine;
@@ -57,6 +60,10 @@ export function WorkoutSessionScreen({ routine, onComplete, onExit }: WorkoutSes
         {phase === 'active' ? exercise.name : '휴식'}
       </h1>
       <p className="text-5xl font-bold text-blue-500">{secondsLeft}</p>
+
+      <div className="mt-auto w-full">
+        <AdBanner adGroupId={WORKOUT_BANNER_AD_GROUP_ID} />
+      </div>
     </div>
   );
 }
