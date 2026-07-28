@@ -11,10 +11,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - [x] 프로젝트 스켈레톤 완성 — 온보딩/홈/루틴생성대기/루틴미리보기/운동세션/완료/기록/설정 8개 화면 모두 구현, 브라우저에서 전체 플로우 클릭 테스트 완료
 - [x] Vercel 프로젝트 연결 및 배포 완료 — https://fit-mate-cyan.vercel.app (production)
 - [ ] GitHub ↔ Vercel 자동 배포 연결 실패한 상태 — Vercel 대시보드에서 수동 승인 필요 (프로젝트 Settings → Git → Connect Git Repository). 그 전까지는 `npx vercel deploy --prod`로 수동 배포.
-- [x] `api/routine.ts`에 Gemini API(`gemini-2.0-flash-lite`, 무료 티어) 연동 코드 완성
+- [x] `api/routine.ts`에 Gemini API(`gemini-flash-lite-latest`, 무료 티어) 연동 코드 완성
 - [x] `GEMINI_API_KEY` 로컬(`.env.local`)/Vercel(production) 둘 다 등록 완료
-- [ ] **Gemini 무료 티어 쿼터가 이 프로젝트에서 `limit: 0`으로 응답 중** — 일시적 rate limit이 아니라 이 Google Cloud 프로젝트에 무료 티어 쿼터 자체가 배정되지 않은 상태(429 `RESOURCE_EXHAUSTED`, `limit: 0`). API key 발급 과정에서 "The request is suspicious" 에러를 겪었던 것과 연관된 것으로 추정. 확인 방법: `https://ai.dev/rate-limit`에서 프로젝트 쿼터 확인, 또는 Google Cloud Console에서 결제 계정 연결 후 재확인. 그 전까지는 앱이 자동으로 더미 루틴(플랭크/스쿼트 고정)으로 폴백해 정상 동작한다.
-  - 참고: `gemini-2.5-flash-lite`는 신규 프로젝트에 404(deprecated)를 반환해서 `gemini-2.0-flash-lite`로 교체함. 모델 후보를 바꿀 땐 `GEMINI_MODEL` 환경변수로 오버라이드 가능.
+- [x] 로컬에서 실제 AI 루틴 생성 확인 완료(`routineId`가 `ai_...`로 시작, 브라우저에서도 확인함)
+  - 삽질 기록: 처음엔 `gemini-2.5-flash-lite`(404, 신규 프로젝트에 미제공) → `gemini-2.0-flash-lite`(이 프로젝트엔 할당량 0)로 바꿔도 계속 실패했다. `https://ai.dev/rate-limit` 대시보드로 확인해보니 실제로는 계정에 쿼터가 있었고(예: "Gemini 2.5 Flash Lite" RPM 2/10), 문제는 **모델 ID를 잘못 골랐던 것**이었다. 지금은 `gemini-flash-lite-latest`(그 시점의 최신 flash-lite 모델로 자동 라우팅되는 별칭)로 고정 — 특정 스냅샷 ID 대신 `-latest` 별칭을 쓰는 게 이런 deprecation/quota 삽질을 피하는 방법이다. 모델을 바꾸고 싶으면 `GEMINI_MODEL` 환경변수로 오버라이드.
+  - 아직 Vercel 프로덕션에서는 재배포 전이라 이전 모델명(더미 폴백)으로 떠 있을 수 있음 — `npx vercel deploy --prod`로 재배포 필요.
 - [ ] 광고 SDK(TossAds) 실제 슬롯 미연동 — `adGroupId` prop이 비어있으면 컴포넌트가 자동으로 숨겨지는 상태
 - [ ] 토스 파트너 콘솔 앱 등록, 광고 슬롯/알림 템플릿 코드 발급
 - [ ] IAP 구독 연동 — 무료 사용자 데이터 축적 이후로 보류 중

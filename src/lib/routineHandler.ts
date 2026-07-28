@@ -3,9 +3,11 @@
 
 import type { Exercise, FitnessGoal, FitnessLevel, Routine, TargetArea } from '../types';
 
-// gemini-2.5-flash-lite는 신규 프로젝트에는 더 이상 제공되지 않아(404),
-// 실제로 이 프로젝트의 키로 호출 가능함을 확인한 모델을 기본값으로 쓴다.
-const GEMINI_MODEL = process.env.GEMINI_MODEL ?? 'gemini-2.0-flash-lite';
+// 고정된 스냅샷 모델 ID(예: gemini-2.5-flash-lite, gemini-2.0-flash-lite)는
+// 프로젝트별로 할당량이 없거나(429 limit: 0) 신규 사용자에게 제공되지 않을(404) 수 있다.
+// "-latest" 별칭은 그 시점에 실제로 사용 가능한 최신 flash-lite 모델로 자동 라우팅되고
+// 무료 티어 할당량도 정상 배정되어 있어 이걸 기본값으로 쓴다.
+const GEMINI_MODEL = process.env.GEMINI_MODEL ?? 'gemini-flash-lite-latest';
 
 const GOAL_LABELS: Record<FitnessGoal, string> = {
   weight_loss: '체중 감량',

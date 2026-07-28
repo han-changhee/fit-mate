@@ -144,7 +144,7 @@
 | 스타일 | Tailwind CSS v4 (`@rsbuild/plugin-tailwindcss`) | 유틸리티 클래스 직접 사용, 별도 CSS 구조 최소화 |
 | 토스 SDK | `@apps-in-toss/web-framework` | 광고(TossAds/GoogleAdMob), 결제(IAP/TossPay), 알림, Storage, 위치 등 브릿지 전부 포함 |
 | 백엔드 | Vercel Edge Functions (`api/*.ts`) | `dawn-peach` 패턴과 동일 — 서버 시크릿(AI API 키) 보호 목적 |
-| AI 루틴 생성 | Gemini API (Google AI Studio) | 무료 티어로 시작 가능(`gemini-2.0-flash-lite` 기준), 서버 사이드에서만 호출, 클라이언트에 API 키 노출 금지 |
+| AI 루틴 생성 | Gemini API (Google AI Studio) | 무료 티어로 시작 가능(`gemini-flash-lite-latest` 기준), 서버 사이드에서만 호출, 클라이언트에 API 키 노출 금지 |
 | 로컬 개발 | rsbuild dev server + middleware | `server.setup`에서 `api/*.ts`와 동일한 핸들러 함수를 재사용해 `npm run dev`만으로 전체 플로우 검증 |
 
 ### 3.2 디렉토리 구조 (제안)
