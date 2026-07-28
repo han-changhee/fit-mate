@@ -7,6 +7,19 @@ import { Redis } from '@upstash/redis';
 export const config = { runtime: 'edge' };
 
 export default async function handler(request: Request): Promise<Response> {
+  // .ait로 번들된 앱은 다른 오리진(로컬 번들)에서 이 API를 호출하므로 브라우저가
+  // 실제 POST 전에 OPTIONS 프리플라이트를 보낼 수 있다.
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      },
+    });
+  }
+
   const payload = await request.json().catch(() => ({}) as Record<string, unknown>);
   const anonKey = payload.anonKey as string | undefined;
   const reminderTime = payload.reminderTime as string | undefined;
