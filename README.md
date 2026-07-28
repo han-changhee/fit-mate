@@ -5,6 +5,7 @@
 - 배포: https://fit-mate-cyan.vercel.app
 - 마스터 플랜(기획/BM/기술/배포): [docs/MASTER_PLAN.md](./docs/MASTER_PLAN.md)
 - 서비스 이용약관(초안, 법률 검토 필요): [docs/TERMS_OF_SERVICE.md](./docs/TERMS_OF_SERVICE.md)
+- 개인정보처리방침(초안, 법률 검토 필요): [docs/PRIVACY_POLICY.md](./docs/PRIVACY_POLICY.md)
 - Claude Code로 이어서 작업할 때 자동으로 읽히는 프로젝트 컨텍스트: [CLAUDE.md](./CLAUDE.md)
 
 ## 시작하기
