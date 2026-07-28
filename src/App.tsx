@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { TossAds } from '@apps-in-toss/web-framework';
 import { isAdInitSupported } from './lib/adSupport';
-import { useAuth } from './hooks/useAuth';
+// 회원가입/로그인/회원탈퇴 비활성화 — 서버 DB가 없어서 토스 로그인이 아직 실질적인
+// 기능이 없다(인가 코드만 받고 아무것도 저장/검증하지 않음). DB를 붙이는 시점에
+// 아래 import와 이 파일 하단의 관련 코드 주석을 풀면 된다.
+// import { useAuth } from './hooks/useAuth';
 import { useStreak } from './hooks/useStreak';
 import { useUserProfile } from './hooks/useUserProfile';
-import { LoginScreen } from './screens/LoginScreen';
+// import { LoginScreen } from './screens/LoginScreen';
 import { OnboardingScreen } from './screens/OnboardingScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { RoutineLoadingScreen } from './screens/RoutineLoadingScreen';
@@ -18,9 +21,9 @@ import type { Routine } from './types';
 type Screen = 'home' | 'loading' | 'preview' | 'session' | 'complete' | 'history' | 'settings';
 
 export default function App() {
-  const { session, login, logout } = useAuth();
-  const { profile, saveProfile, clearProfile } = useUserProfile();
-  const { streak, markCompletedToday, resetStreak } = useStreak();
+  // const { session, login, logout } = useAuth();
+  const { profile, saveProfile } = useUserProfile();
+  const { streak, markCompletedToday } = useStreak();
   const [screen, setScreen] = useState<Screen>('home');
   const [routine, setRoutine] = useState<Routine | null>(null);
 
@@ -33,21 +36,21 @@ export default function App() {
     }
   }, []);
 
-  const handleWithdraw = () => {
-    clearProfile();
-    resetStreak();
-    logout();
-    setRoutine(null);
-    setScreen('home');
-  };
+  // const handleWithdraw = () => {
+  //   clearProfile();
+  //   resetStreak();
+  //   logout();
+  //   setRoutine(null);
+  //   setScreen('home');
+  // };
 
-  if (session === undefined) {
-    return <div className="min-h-screen" />;
-  }
+  // if (session === undefined) {
+  //   return <div className="min-h-screen" />;
+  // }
 
-  if (session === null) {
-    return <LoginScreen onLoggedIn={login} />;
-  }
+  // if (session === null) {
+  //   return <LoginScreen onLoggedIn={login} />;
+  // }
 
   if (profile === undefined) {
     return <div className="min-h-screen" />;
@@ -114,9 +117,8 @@ export default function App() {
   }
 
   if (screen === 'settings') {
-    return (
-      <SettingsScreen onBack={() => setScreen('home')} onWithdraw={handleWithdraw} />
-    );
+    return <SettingsScreen onBack={() => setScreen('home')} />;
+    // 회원탈퇴 재활성화 시: <SettingsScreen onBack={...} onWithdraw={handleWithdraw} />
   }
 
   return (

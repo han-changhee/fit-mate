@@ -7,12 +7,13 @@ const DEFAULT_REMINDER_TIME = '19:00';
 
 interface SettingsScreenProps {
   onBack: () => void;
-  onWithdraw: () => void;
+  // 회원탈퇴 비활성화 — 아래 JSX/handleWithdraw 주석과 함께 재활성화할 것
+  // onWithdraw: () => void;
 }
 
-export function SettingsScreen({ onBack, onWithdraw }: SettingsScreenProps) {
+export function SettingsScreen({ onBack }: SettingsScreenProps) {
   const [reminderTime, setReminderTime] = useState(DEFAULT_REMINDER_TIME);
-  const [confirmingWithdraw, setConfirmingWithdraw] = useState(false);
+  // const [confirmingWithdraw, setConfirmingWithdraw] = useState(false);
 
   useEffect(() => {
     Storage.getItem(STORAGE_KEY)
@@ -29,10 +30,10 @@ export function SettingsScreen({ onBack, onWithdraw }: SettingsScreenProps) {
     );
   };
 
-  const handleWithdraw = () => {
-    Storage.removeItem(STORAGE_KEY).catch(() => window.localStorage.removeItem(STORAGE_KEY));
-    onWithdraw();
-  };
+  // const handleWithdraw = () => {
+  //   Storage.removeItem(STORAGE_KEY).catch(() => window.localStorage.removeItem(STORAGE_KEY));
+  //   onWithdraw();
+  // };
 
   return (
     <div className="flex min-h-screen flex-col gap-6 px-6 py-8">
@@ -57,6 +58,7 @@ export function SettingsScreen({ onBack, onWithdraw }: SettingsScreenProps) {
 
       <NotificationSubscribeButton />
 
+      {/* 회원탈퇴 비활성화 — DB 추가 후 onWithdraw prop과 함께 재활성화
       <div className="mt-auto">
         {confirmingWithdraw ? (
           <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-center">
@@ -90,6 +92,7 @@ export function SettingsScreen({ onBack, onWithdraw }: SettingsScreenProps) {
           </button>
         )}
       </div>
+      */}
     </div>
   );
 }
