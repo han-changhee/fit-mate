@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { fetchRoutine } from '../lib/routineApi';
+import { savePendingRoutine } from '../lib/pendingRoutine';
 import type { Routine, UserProfile } from '../types';
 
 interface RoutineLoadingScreenProps {
@@ -17,7 +18,14 @@ export function RoutineLoadingScreen({ profile, onLoaded, onError }: RoutineLoad
   useEffect(() => {
     if (startedRef.current) return;
     startedRef.current = true;
-    fetchRoutine(profile).then(onLoaded).catch(onError);
+    fetchRoutine(profile)
+      .then((routine) => {
+        // 광고를 닫을 때 웹뷰가 리로드돼 이 화면의 메모리 상태가 날아갈 수 있어,
+        // 받아온 루틴을 먼저 저장해둔다(App.tsx가 재시작 시 복구한다).
+        savePendingRoutine(routine);
+        onLoaded(routine);
+      })
+      .catch(onError);
   }, [profile, onLoaded, onError]);
 
   return (

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { TossAds } from '@apps-in-toss/web-framework';
 import { isAdInitSupported } from './lib/adSupport';
+import { consumePendingRoutine } from './lib/pendingRoutine';
 // 회원가입/로그인/회원탈퇴 비활성화 — 서버 DB가 없어서 토스 로그인이 아직 실질적인
 // 기능이 없다(인가 코드만 받고 아무것도 저장/검증하지 않음). DB를 붙이는 시점에
 // 아래 import와 이 파일 하단의 관련 코드 주석을 풀면 된다.
@@ -26,6 +27,8 @@ export default function App() {
   const { streak, markCompletedToday } = useStreak();
   const [screen, setScreen] = useState<Screen>('home');
   const [routine, setRoutine] = useState<Routine | null>(null);
+  // undefined = 아직 확인 전, null = 복구할 루틴 없음
+  const [pendingChecked, setPendingChecked] = useState(false);
 
   useEffect(() => {
     if (!isAdInitSupported()) return;
@@ -35,6 +38,19 @@ export default function App() {
       // 광고 초기화 실패는 앱 전체에 영향을 주면 안 되므로 무시한다.
     }
   }, []);
+
+  // 전면 광고를 닫을 때 웹뷰가 리로드되면서 화면 상태가 초기화되는 경우가 있어,
+  // 앱이 (다시) 켜질 때마다 방금 생성해둔 루틴이 저장돼 있는지 확인해 복구한다.
+  useEffect(() => {
+    if (profile === undefined || profile === null) return;
+    consumePendingRoutine().then((pending) => {
+      if (pending) {
+        setRoutine(pending);
+        setScreen('preview');
+      }
+      setPendingChecked(true);
+    });
+  }, [profile]);
 
   // const handleWithdraw = () => {
   //   clearProfile();
@@ -58,6 +74,10 @@ export default function App() {
 
   if (profile === null) {
     return <OnboardingScreen onComplete={saveProfile} />;
+  }
+
+  if (!pendingChecked) {
+    return <div className="min-h-screen" />;
   }
 
   if (screen === 'loading') {
