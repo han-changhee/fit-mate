@@ -12,10 +12,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - [x] Vercel 프로젝트 연결 및 배포 완료 — https://fit-mate-cyan.vercel.app (production)
 - [ ] GitHub ↔ Vercel 자동 배포 연결 실패한 상태 — Vercel 대시보드에서 수동 승인 필요 (프로젝트 Settings → Git → Connect Git Repository). 그 전까지는 `npx vercel deploy --prod`로 수동 배포.
 - [x] `api/routine.ts`에 Gemini API(`gemini-flash-lite-latest`, 무료 티어) 연동 코드 완성
-- [x] `GEMINI_API_KEY` 로컬(`.env.local`)/Vercel(production) 둘 다 등록 완료
-- [x] 로컬에서 실제 AI 루틴 생성 확인 완료(`routineId`가 `ai_...`로 시작, 브라우저에서도 확인함)
-  - 삽질 기록: 처음엔 `gemini-2.5-flash-lite`(404, 신규 프로젝트에 미제공) → `gemini-2.0-flash-lite`(이 프로젝트엔 할당량 0)로 바꿔도 계속 실패했다. `https://ai.dev/rate-limit` 대시보드로 확인해보니 실제로는 계정에 쿼터가 있었고(예: "Gemini 2.5 Flash Lite" RPM 2/10), 문제는 **모델 ID를 잘못 골랐던 것**이었다. 지금은 `gemini-flash-lite-latest`(그 시점의 최신 flash-lite 모델로 자동 라우팅되는 별칭)로 고정 — 특정 스냅샷 ID 대신 `-latest` 별칭을 쓰는 게 이런 deprecation/quota 삽질을 피하는 방법이다. 모델을 바꾸고 싶으면 `GEMINI_MODEL` 환경변수로 오버라이드.
-  - 아직 Vercel 프로덕션에서는 재배포 전이라 이전 모델명(더미 폴백)으로 떠 있을 수 있음 — `npx vercel deploy --prod`로 재배포 필요.
+- [x] `GEMINI_API_KEY` 로컬(`.env.local`)/Vercel(production) 둘 다 정상 등록, 실제 AI 루틴 생성 로컬·프로덕션 양쪽 확인 완료(`routineId`가 `ai_...`로 시작)
+  - 삽질 기록 1(모델 선택): 처음엔 `gemini-2.5-flash-lite`(404, 신규 프로젝트에 미제공) → `gemini-2.0-flash-lite`(이 프로젝트엔 할당량 0)로 바꿔도 계속 실패했다. `https://ai.dev/rate-limit` 대시보드로 확인해보니 실제로는 계정에 쿼터가 있었고, 문제는 모델 ID를 잘못 골랐던 것이었다. 지금은 `gemini-flash-lite-latest`(그 시점의 최신 flash-lite 모델로 자동 라우팅되는 별칭)로 고정 — 특정 스냅샷 ID 대신 `-latest` 별칭을 쓰는 게 이런 deprecation/quota 삽질을 피하는 방법이다. 모델을 바꾸고 싶으면 `GEMINI_MODEL` 환경변수로 오버라이드.
+  - 삽질 기록 2(env var 등록): `vercel env add GEMINI_API_KEY production`을 대화형 프롬프트(`Value?`)로 입력했을 때 값이 13자로 잘려서 등록된 적이 두 번 있었다(터미널 마스킹 입력 붙여넣기 버그로 추정). `echo -n "<키>" | vercel env add GEMINI_API_KEY production`처럼 stdin으로 파이프하는 방식이 더 안전하다. 이 프로젝트에서 env var 관련 이상 동작이 있으면 `vercel env pull <file> --environment=production`으로 실제 등록된 값의 길이부터 확인할 것.
 - [ ] 광고 SDK(TossAds) 실제 슬롯 미연동 — `adGroupId` prop이 비어있으면 컴포넌트가 자동으로 숨겨지는 상태
 - [ ] 토스 파트너 콘솔 앱 등록, 광고 슬롯/알림 템플릿 코드 발급
 - [ ] IAP 구독 연동 — 무료 사용자 데이터 축적 이후로 보류 중
