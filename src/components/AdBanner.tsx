@@ -4,9 +4,13 @@ import { isBannerAdSupported } from '../lib/adSupport';
 
 interface AdBannerProps {
   adGroupId?: string;
+  // 'expanded'는 'card'보다 크게 렌더링되는 인라인 배너 포맷이다. 전면(인터스티셜)
+  // 광고처럼 오버레이로 뜨지는 않지만, 더 존재감 있는 배너가 필요한 자리(예: AI 루틴
+  // 생성 대기 화면)에서 'card' 대신 쓴다.
+  variant?: 'card' | 'expanded';
 }
 
-export function AdBanner({ adGroupId }: AdBannerProps) {
+export function AdBanner({ adGroupId, variant = 'card' }: AdBannerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(true);
 
@@ -18,7 +22,7 @@ export function AdBanner({ adGroupId }: AdBannerProps) {
     try {
       const { destroy } = TossAds.attachBanner(adGroupId, containerRef.current, {
         theme: 'auto',
-        variant: 'card',
+        variant,
         callbacks: {
           onNoFill: () => setVisible(false),
           onAdFailedToRender: () => setVisible(false),
@@ -36,7 +40,7 @@ export function AdBanner({ adGroupId }: AdBannerProps) {
       setVisible(false);
       return;
     }
-  }, [adGroupId]);
+  }, [adGroupId, variant]);
 
   if (!adGroupId || !visible) return null;
 

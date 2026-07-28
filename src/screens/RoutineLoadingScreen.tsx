@@ -1,10 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { AdZone } from '../components/AdZone';
 import { fetchRoutine } from '../lib/routineApi';
-import { showFullScreenAdIfAvailable } from '../lib/fullScreenAd';
 import type { Routine, UserProfile } from '../types';
 
-const ROUTINE_LOADING_AD_GROUP_ID = import.meta.env.PUBLIC_ROUTINE_LOADING_AD_GROUP_ID;
 const HOME_BANNER_AD_GROUP_ID = import.meta.env.PUBLIC_HOME_BANNER_AD_GROUP_ID;
 
 interface RoutineLoadingScreenProps {
@@ -13,9 +11,9 @@ interface RoutineLoadingScreenProps {
   onError: () => void;
 }
 
-// 단순 로딩 스피너 대신, AI가 루틴을 계산하는 백그라운드 시간 동안 전면 광고를
-// 띄우고(있으면) 화면에는 배너형 광고 존을 보여준다. 광고 노출/실패 여부와
-// 무관하게 루틴 fetch는 병렬로 계속 진행된다.
+// 전면 광고는 닫으면 다시 이 로딩 화면으로 돌아오는 게 부자연스러워서 쓰지 않는다.
+// 대신 AI가 루틴을 계산하는 동안 화면에 배너형 광고 존만 보여주고, 광고 노출/실패
+// 여부와 무관하게 루틴 fetch는 계속 진행된다.
 export function RoutineLoadingScreen({ profile, onLoaded, onError }: RoutineLoadingScreenProps) {
   const startedRef = useRef(false);
 
@@ -23,7 +21,6 @@ export function RoutineLoadingScreen({ profile, onLoaded, onError }: RoutineLoad
     if (startedRef.current) return;
     startedRef.current = true;
 
-    showFullScreenAdIfAvailable(ROUTINE_LOADING_AD_GROUP_ID);
     fetchRoutine(profile).then(onLoaded).catch(onError);
   }, [profile, onLoaded, onError]);
 
@@ -47,7 +44,7 @@ export function RoutineLoadingScreen({ profile, onLoaded, onError }: RoutineLoad
         <span className="h-2 w-2 animate-bounce rounded-full bg-lime-400" />
       </div>
 
-      <AdZone bannerAdGroupId={HOME_BANNER_AD_GROUP_ID} label="Sponsored" />
+      <AdZone bannerAdGroupId={HOME_BANNER_AD_GROUP_ID} label="Sponsored" variant="expanded" />
     </div>
   );
 }
