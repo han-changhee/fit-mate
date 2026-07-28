@@ -8,11 +8,15 @@ export interface UserProfile {
   targetAreas: TargetArea[];
 }
 
+export type ExerciseMode = 'time' | 'reps';
+
 export interface Exercise {
   name: string;
   targetArea: TargetArea;
   sets: number;
-  durationSec: number;
+  mode: ExerciseMode;
+  durationSec?: number; // mode === 'time'일 때만 사용
+  reps?: number; // mode === 'reps'일 때만 사용
   restSec: number;
   notes?: string;
 }

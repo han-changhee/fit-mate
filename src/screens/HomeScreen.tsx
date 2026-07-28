@@ -27,28 +27,33 @@ export function HomeScreen({
   onShowSettings,
 }: HomeScreenProps) {
   return (
-    <div className="flex min-h-screen flex-col gap-6 px-6 py-8">
+    <div className="flex min-h-screen flex-col gap-6 bg-black px-6 py-8 text-white">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-blue-500">핏메이트 🏃</p>
-        <button type="button" onClick={onShowSettings} className="text-sm text-gray-400">
+        <p className="text-sm font-black tracking-widest text-lime-400 uppercase">
+          핏메이트 🏃
+        </p>
+        <button type="button" onClick={onShowSettings} className="text-sm font-bold text-zinc-500">
           설정
         </button>
       </div>
 
-      <div className="rounded-2xl bg-blue-50 px-5 py-4">
-        <p className="text-xs text-blue-500">연속 운동</p>
-        <p className="mt-1 text-2xl font-bold text-blue-600">{streakCount}일째</p>
+      <div className="rounded-2xl border border-lime-400/30 bg-zinc-900 px-5 py-4">
+        <p className="text-xs font-bold tracking-widest text-lime-400 uppercase">연속 운동</p>
+        <p className="mt-1 text-3xl font-black text-white">
+          {streakCount}
+          <span className="text-lg text-zinc-500">일째</span>
+        </p>
       </div>
 
-      <div className="rounded-2xl border border-gray-200 px-5 py-6 text-center">
-        <p className="text-sm text-gray-500">오늘의 목표</p>
-        <p className="mt-2 text-base font-bold text-gray-800">
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 px-5 py-6 text-center">
+        <p className="text-xs font-bold tracking-widest text-zinc-500 uppercase">오늘의 목표</p>
+        <p className="mt-2 text-xl font-black uppercase">
           {toAreaLabels(profile.targetAreas)} 중심 루틴
         </p>
         <button
           type="button"
           onClick={onStartRoutine}
-          className="mt-6 w-full rounded-full bg-blue-500 py-3 text-sm font-bold text-white active:bg-blue-600"
+          className="mt-6 w-full rounded-full bg-lime-400 py-3 text-sm font-black tracking-wide text-black uppercase active:bg-lime-300"
         >
           오늘의 루틴 생성하기
         </button>
@@ -56,7 +61,11 @@ export function HomeScreen({
 
       <AdBanner adGroupId={HOME_BANNER_AD_GROUP_ID} />
 
-      <button type="button" onClick={onShowHistory} className="text-sm text-gray-400 underline">
+      <button
+        type="button"
+        onClick={onShowHistory}
+        className="text-sm font-bold text-zinc-500 underline"
+      >
         운동 기록 보기
       </button>
 

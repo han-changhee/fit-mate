@@ -12,13 +12,13 @@ import { OnboardingScreen } from './screens/OnboardingScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { RoutineLoadingScreen } from './screens/RoutineLoadingScreen';
 import { RoutinePreviewScreen } from './screens/RoutinePreviewScreen';
-import { WorkoutSessionScreen } from './screens/WorkoutSessionScreen';
+import { ExerciseDetailScreen } from './screens/ExerciseDetailScreen';
 import { WorkoutCompleteScreen } from './screens/WorkoutCompleteScreen';
 import { HistoryScreen } from './screens/HistoryScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import type { Routine } from './types';
 
-type Screen = 'home' | 'loading' | 'preview' | 'session' | 'complete' | 'history' | 'settings';
+type Screen = 'home' | 'loading' | 'preview' | 'exercise' | 'complete' | 'history' | 'settings';
 
 export default function App() {
   // const { session, login, logout } = useAuth();
@@ -26,6 +26,8 @@ export default function App() {
   const { streak, markCompletedToday } = useStreak();
   const [screen, setScreen] = useState<Screen>('home');
   const [routine, setRoutine] = useState<Routine | null>(null);
+  const [completedIndices, setCompletedIndices] = useState<number[]>([]);
+  const [activeExerciseIndex, setActiveExerciseIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isAdInitSupported()) return;
@@ -53,7 +55,7 @@ export default function App() {
   // }
 
   if (profile === undefined) {
-    return <div className="min-h-screen" />;
+    return <div className="min-h-screen bg-black" />;
   }
 
   if (profile === null) {
@@ -66,6 +68,7 @@ export default function App() {
         profile={profile}
         onLoaded={(next) => {
           setRoutine(next);
+          setCompletedIndices([]);
           setScreen('preview');
         }}
         onError={() => setScreen('home')}
@@ -77,21 +80,40 @@ export default function App() {
     return (
       <RoutinePreviewScreen
         routine={routine}
-        onStart={() => setScreen('session')}
+        completedIndices={completedIndices}
+        onSelectExercise={(index) => {
+          setActiveExerciseIndex(index);
+          setScreen('exercise');
+        }}
         onBack={() => setScreen('home')}
       />
     );
   }
 
-  if (screen === 'session' && routine) {
+  if (screen === 'exercise' && routine && activeExerciseIndex !== null) {
     return (
-      <WorkoutSessionScreen
-        routine={routine}
+      <ExerciseDetailScreen
+        exercise={routine.exercises[activeExerciseIndex]}
+        exerciseNumber={activeExerciseIndex + 1}
+        totalExercises={routine.exercises.length}
         onComplete={() => {
-          markCompletedToday();
-          setScreen('complete');
+          const next = completedIndices.includes(activeExerciseIndex)
+            ? completedIndices
+            : [...completedIndices, activeExerciseIndex];
+          setCompletedIndices(next);
+          setActiveExerciseIndex(null);
+
+          if (next.length >= routine.exercises.length) {
+            markCompletedToday();
+            setScreen('complete');
+          } else {
+            setScreen('preview');
+          }
         }}
-        onExit={() => setScreen('home')}
+        onExit={() => {
+          setActiveExerciseIndex(null);
+          setScreen('preview');
+        }}
       />
     );
   }

@@ -32,25 +32,32 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
     (step === 1 && goal !== null) ||
     (step === 2 && targetAreas.length > 0);
 
+  const optionClass = (selected: boolean) =>
+    `rounded-xl border px-4 py-3 text-left text-sm font-bold uppercase ${
+      selected
+        ? 'border-lime-400 bg-lime-400/10 text-lime-400'
+        : 'border-zinc-800 bg-zinc-900 text-zinc-400'
+    }`;
+
   return (
-    <div className="flex min-h-screen flex-col justify-between px-6 py-10">
+    <div className="flex min-h-screen flex-col justify-between bg-black px-6 py-10 text-white">
       <div>
-        <p className="text-sm font-medium text-blue-500">{step + 1} / 3</p>
+        <p className="text-xs font-black tracking-widest text-lime-400 uppercase">
+          {step + 1} / 3
+        </p>
 
         {step === 0 && (
           <>
-            <h1 className="mt-2 text-lg font-bold text-gray-800">체력 수준을 알려주세요</h1>
+            <h1 className="mt-2 text-2xl font-black tracking-tight uppercase">
+              체력 수준을 알려주세요
+            </h1>
             <div className="mt-6 flex flex-col gap-3">
               {FITNESS_LEVELS.map((option) => (
                 <button
                   key={option.value}
                   type="button"
                   onClick={() => setFitnessLevel(option.value)}
-                  className={`rounded-xl border px-4 py-3 text-left text-sm font-medium ${
-                    fitnessLevel === option.value
-                      ? 'border-blue-500 bg-blue-50 text-blue-600'
-                      : 'border-gray-200 text-gray-600'
-                  }`}
+                  className={optionClass(fitnessLevel === option.value)}
                 >
                   {option.label}
                 </button>
@@ -61,18 +68,16 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
 
         {step === 1 && (
           <>
-            <h1 className="mt-2 text-lg font-bold text-gray-800">운동 목적을 알려주세요</h1>
+            <h1 className="mt-2 text-2xl font-black tracking-tight uppercase">
+              운동 목적을 알려주세요
+            </h1>
             <div className="mt-6 flex flex-col gap-3">
               {FITNESS_GOALS.map((option) => (
                 <button
                   key={option.value}
                   type="button"
                   onClick={() => setGoal(option.value)}
-                  className={`rounded-xl border px-4 py-3 text-left text-sm font-medium ${
-                    goal === option.value
-                      ? 'border-blue-500 bg-blue-50 text-blue-600'
-                      : 'border-gray-200 text-gray-600'
-                  }`}
+                  className={optionClass(goal === option.value)}
                 >
                   {option.label}
                 </button>
@@ -83,7 +88,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
 
         {step === 2 && (
           <>
-            <h1 className="mt-2 text-lg font-bold text-gray-800">
+            <h1 className="mt-2 text-2xl font-black tracking-tight uppercase">
               선호 부위를 알려주세요 (중복 가능)
             </h1>
             <div className="mt-6 flex flex-wrap gap-3">
@@ -92,10 +97,10 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                   key={option.value}
                   type="button"
                   onClick={() => toggleArea(option.value)}
-                  className={`rounded-full border px-4 py-2 text-sm font-medium ${
+                  className={`rounded-full border px-4 py-2 text-sm font-bold uppercase ${
                     targetAreas.includes(option.value)
-                      ? 'border-blue-500 bg-blue-50 text-blue-600'
-                      : 'border-gray-200 text-gray-600'
+                      ? 'border-lime-400 bg-lime-400/10 text-lime-400'
+                      : 'border-zinc-800 bg-zinc-900 text-zinc-400'
                   }`}
                 >
                   {option.label}
@@ -110,7 +115,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
         type="button"
         onClick={handleNext}
         disabled={!canProceed}
-        className="rounded-full bg-blue-500 py-3 text-sm font-bold text-white disabled:bg-gray-200 disabled:text-gray-400"
+        className="rounded-full bg-lime-400 py-3 text-sm font-black tracking-wide text-black uppercase disabled:bg-zinc-800 disabled:text-zinc-600"
       >
         {step < 2 ? '다음' : '시작하기'}
       </button>

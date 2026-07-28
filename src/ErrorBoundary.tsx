@@ -20,12 +20,12 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
-          <p className="text-sm text-gray-500">일시적인 오류가 발생했어요.</p>
+        <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-black px-6 text-center text-white">
+          <p className="text-sm font-bold text-zinc-500">일시적인 오류가 발생했어요.</p>
           <button
             type="button"
             onClick={() => this.setState({ hasError: false })}
-            className="rounded-full bg-blue-500 px-4 py-2 text-sm font-bold text-white active:bg-blue-600"
+            className="rounded-full bg-lime-400 px-5 py-2 text-sm font-black tracking-wide text-black uppercase active:bg-lime-300"
           >
             다시 시도하기
           </button>

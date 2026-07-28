@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react';
+import { AdZone } from '../components/AdZone';
 import { fetchRoutine } from '../lib/routineApi';
 import { showFullScreenAdIfAvailable } from '../lib/fullScreenAd';
 import type { Routine, UserProfile } from '../types';
 
 const ROUTINE_LOADING_AD_GROUP_ID = import.meta.env.PUBLIC_ROUTINE_LOADING_AD_GROUP_ID;
+const HOME_BANNER_AD_GROUP_ID = import.meta.env.PUBLIC_HOME_BANNER_AD_GROUP_ID;
 
 interface RoutineLoadingScreenProps {
   profile: UserProfile;
@@ -11,6 +13,9 @@ interface RoutineLoadingScreenProps {
   onError: () => void;
 }
 
+// 단순 로딩 스피너 대신, AI가 루틴을 계산하는 백그라운드 시간 동안 전면 광고를
+// 띄우고(있으면) 화면에는 배너형 광고 존을 보여준다. 광고 노출/실패 여부와
+// 무관하게 루틴 fetch는 병렬로 계속 진행된다.
 export function RoutineLoadingScreen({ profile, onLoaded, onError }: RoutineLoadingScreenProps) {
   const startedRef = useRef(false);
 
@@ -18,16 +23,31 @@ export function RoutineLoadingScreen({ profile, onLoaded, onError }: RoutineLoad
     if (startedRef.current) return;
     startedRef.current = true;
 
-    // 전면 광고는 사용자가 루틴 생성을 기다리는 이 구간에만 노출한다. 광고
-    // 로드/노출과 무관하게 루틴 fetch는 그대로 진행된다.
     showFullScreenAdIfAvailable(ROUTINE_LOADING_AD_GROUP_ID);
     fetchRoutine(profile).then(onLoaded).catch(onError);
   }, [profile, onLoaded, onError]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
-      <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-200 border-t-blue-500" />
-      <p className="text-sm text-gray-500">AI가 오늘의 루틴을 만들고 있어요...</p>
+    <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-black px-6 py-8 text-white">
+      <div className="text-center">
+        <p className="text-xs font-bold tracking-widest text-lime-400 uppercase">
+          AI 루틴 생성 중
+        </p>
+        <h1 className="mt-2 text-2xl font-black tracking-tight uppercase">
+          잠깐, 바로 시작할게요 🔥
+        </h1>
+        <p className="mt-2 text-sm font-bold text-zinc-500">
+          몸 풀면서 광고 하나 보고 가실게요
+        </p>
+      </div>
+
+      <div className="flex gap-2">
+        <span className="h-2 w-2 animate-bounce rounded-full bg-lime-400 [animation-delay:-0.3s]" />
+        <span className="h-2 w-2 animate-bounce rounded-full bg-lime-400 [animation-delay:-0.15s]" />
+        <span className="h-2 w-2 animate-bounce rounded-full bg-lime-400" />
+      </div>
+
+      <AdZone bannerAdGroupId={HOME_BANNER_AD_GROUP_ID} label="Sponsored" />
     </div>
   );
 }

@@ -61,26 +61,26 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
   // };
 
   return (
-    <div className="flex min-h-screen flex-col gap-6 px-6 py-8">
-      <button type="button" onClick={onBack} className="self-start text-sm text-gray-400">
+    <div className="flex min-h-screen flex-col gap-6 bg-black px-6 py-8 text-white">
+      <button type="button" onClick={onBack} className="self-start text-sm font-bold text-zinc-500">
         ← 뒤로
       </button>
 
-      <h1 className="text-lg font-bold text-gray-800">설정</h1>
+      <h1 className="text-2xl font-black tracking-tight uppercase">설정</h1>
 
-      <div className="rounded-2xl border border-gray-200 px-5 py-4">
-        <p className="text-sm font-medium text-gray-700">운동 알림 시간</p>
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 px-5 py-4">
+        <p className="text-sm font-bold text-zinc-300">운동 알림 시간</p>
         <input
           type="time"
           step={900}
           value={reminderTime}
           onChange={(event) => handleChange(event.target.value)}
-          className="mt-3 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+          className="mt-3 w-full rounded-lg border border-zinc-800 bg-black px-3 py-2 text-sm text-lime-400 [color-scheme:dark]"
         />
-        <p className="mt-2 text-xs text-gray-400">
+        <p className="mt-2 text-xs font-bold text-zinc-600">
           15분 단위(정각/15분/30분/45분)로만 설정할 수 있어요.
         </p>
-        <p className="mt-1 text-xs text-gray-400">
+        <p className="mt-1 text-xs font-bold text-zinc-600">
           알림을 실제로 받으려면 아래에서 알림 동의가 필요해요.
         </p>
       </div>

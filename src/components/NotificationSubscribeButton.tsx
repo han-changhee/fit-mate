@@ -31,10 +31,10 @@ export function NotificationSubscribeButton() {
 
   return (
     <div className="w-full text-center">
-      <button type="button" onClick={handleClick} className="text-sm text-blue-500 underline">
+      <button type="button" onClick={handleClick} className="text-sm font-bold text-cyan-400 underline">
         🔔 운동 알림 받기
       </button>
-      {status && <p className="mt-1 text-xs text-gray-400">{status}</p>}
+      {status && <p className="mt-1 text-xs font-bold text-zinc-500">{status}</p>}
     </div>
   );
 }
