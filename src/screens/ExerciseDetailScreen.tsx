@@ -13,7 +13,7 @@ interface ExerciseDetailScreenProps {
   onExit: () => void;
 }
 
-type Phase = 'active' | 'rest';
+type Phase = 'ready' | 'active' | 'rest';
 
 export function ExerciseDetailScreen({
   exercise,
@@ -23,7 +23,7 @@ export function ExerciseDetailScreen({
   onExit,
 }: ExerciseDetailScreenProps) {
   const [setIndex, setSetIndex] = useState(0);
-  const [phase, setPhase] = useState<Phase>('active');
+  const [phase, setPhase] = useState<Phase>('ready');
   const [repCount, setRepCount] = useState(0);
   const isLastSet = setIndex >= exercise.sets - 1;
 
@@ -51,19 +51,29 @@ export function ExerciseDetailScreen({
         운동 {exerciseNumber} / {totalExercises} · 세트 {setIndex + 1} / {exercise.sets}
       </p>
       <h1 className="mt-2 text-center text-3xl font-black tracking-tight uppercase">
-        {phase === 'active' ? exercise.name : '휴식'}
+        {phase === 'rest' ? '휴식' : exercise.name}
       </h1>
-      {exercise.notes && phase === 'active' && (
+      {exercise.notes && phase !== 'rest' && (
         <p className="mt-2 text-center text-sm text-zinc-500">{exercise.notes}</p>
       )}
 
-      {phase === 'active' && (
+      {phase !== 'rest' && (
         <div className="mt-4">
           <ExerciseGuideBox exerciseName={exercise.name} />
         </div>
       )}
 
       <div className="flex flex-1 flex-col items-center justify-center gap-8">
+        {phase === 'ready' ? (
+          <button
+            type="button"
+            onClick={() => setPhase('active')}
+            className="flex h-40 w-40 items-center justify-center rounded-full bg-lime-400 text-xl font-black tracking-wide text-black uppercase active:bg-lime-300"
+          >
+            운동 시작
+          </button>
+        ) : null}
+
         {phase === 'active' && exercise.mode === 'time' ? (
           <TimerCounter
             durationSec={exercise.durationSec ?? 30}
