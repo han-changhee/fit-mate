@@ -24,8 +24,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - API 스펙: https://developers-apps-in-toss.toss.im/documentation/common/growth/smart-message . 인증은 `x-anon-key`(또는 `x-user-key`) 헤더 + mTLS 클라이언트 인증서 둘 다 필요. `TOSS_MTLS_CERT`/`TOSS_MTLS_PRIVATE_KEY`는 base64로 인코딩해 env var에 저장(PEM 줄바꿈이 CLI 파이프 과정에서 깨지는 걸 피하려고).
   - **주의**: Node 런타임 함수는 `src/lib`의 다른 파일을 import하면 `ERR_MODULE_NOT_FOUND`로 죽는다(package.json이 `"type": "module"`이라 Node 네이티브 ESM 로더가 확장자 없는 상대경로를 못 찾음 — Edge Function은 esbuild 번들링이라 문제없었음). Node 런타임 함수는 로직을 파일 안에 인라인으로 넣을 것.
 - [x] Upstash Redis 연결 완료(`UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN`) — `api/reminders/save.ts`에서 `anonKey -> reminderTime` 저장 확인됨. Vercel Storage 탭의 마켓플레이스 연동(Upstash, Redis Cloud 둘 다)은 무료 티어가 없어서, console.upstash.com에서 직접 만든 무료 인스턴스를 수동으로 연결했다.
-- [ ] **클라이언트에서 아직 이 저장 엔드포인트를 안 씀** — `SettingsScreen.tsx`는 여전히 리마인더 시간을 로컬(Storage/localStorage)에만 저장한다. `getAnonymousKey()`로 익명 키를 받아서 `/api/reminders/save`로 보내는 연동이 필요하다(로그인 없이 가능 — `getAnonymousKey()`는 로그인과 무관한 별도 SDK 함수).
-- [ ] **실제 발송 스케줄러(cron) 없음** — Redis에 저장은 되지만, 저장된 시간이 됐을 때 `api/notifications/send-test.ts`의 발송 로직을 실제로 트리거해주는 주기적 작업이 아직 없다. Vercel Cron 설정 필요(무료 Hobby 플랜은 크론 주기가 하루 1회로 제한될 수 있음 — 사용자 확인 필요).
+- [x] 클라이언트 연동 완료 — `SettingsScreen.tsx`가 알림 시간 변경 시 `getAnonymousKey()`로 익명 키를 받아 로컬 저장과 동시에 `/api/reminders/save`로 서버(Redis)에도 저장한다(`src/lib/anonymousKey.ts`, `src/lib/reminderApi.ts`). 웹뷰 밖에서는 익명 키를 못 받아와 서버 호출을 안전하게 건너뛰는 것 확인함.
+- [x] **실제 발송 스케줄러 완성 — 프로덕션에서 동작 확인됨.** `api/cron/send-reminders.ts`(Node.js 런타임)가 Redis의 `reminder:*`를 전부 스캔해 현재 KST와 일치하는 anonKey에게 mTLS로 실제 발송한다.
+  - **Vercel Cron은 못 씀** — Hobby(무료) 플랜은 크론이 하루 1회로 제한돼서 `*/15 * * * *` 배포가 거부됨(`vercel.json`에 crons 넣지 말 것). 대신 **Upstash QStash**(같은 Upstash 계정, EU/US 리전만 있고 무료)의 Schedules 기능으로 15분마다 이 엔드포인트를 호출하도록 설정했다.
+  - **인증은 헤더가 아니라 쿼리 파라미터**(`?secret=...`)로 처리한다 — QStash 콘솔의 커스텀 헤더 입력 UI가 프리셋 목록(Upstash-* 헤더들)만 지원하는 것처럼 동작해서 `Authorization` 같은 임의 헤더를 못 넣었다. `CRON_SECRET` 환경변수와 대조해서 401 처리.
+  - **리마인더 시간은 15분 단위로 강제**한다(`SettingsScreen.tsx`의 `roundToNearest15`) — 크론이 15분 간격으로만 돌기 때문에, 그 외 시각으로 설정하면 정확히 일치하는 순간이 없어 알림이 영원히 안 울린다. `<input type="time" step={900}>`로 UI에서도 스냅.
+  - QStash 스케줄: Destination `https://fit-mate-cyan.vercel.app/api/cron/send-reminders?secret=...`, Header `Upstash-Cron: */15 * * * *`. 콘솔 → QStash → US Region → Schedules에서 관리.
 - [ ] IAP 구독 연동 — 무료 사용자 데이터 축적 이후로 보류 중
 
 ## Commands
