@@ -66,10 +66,18 @@ async function generateRoutineWithAI(
 ): Promise<Routine> {
   const areaLabels = targetAreas.map((area) => AREA_LABELS[area]).join(', ');
 
+  // Vercel Edge Function 자체의 실행 제한 시간(약 25초)에 걸려 플랫폼이 강제로
+  // 끊어버리면 우리 코드가 catch할 기회조차 없이 502/504만 응답으로 나간다.
+  // 그 전에 우리가 먼저 타임아웃을 걸어서, 아래 handleRoutineRequest의 try/catch가
+  // 더미 루틴으로 폴백할 시간을 확보한다.
+  const timeoutController = new AbortController();
+  const timeoutId = setTimeout(() => timeoutController.abort(), 15000);
+
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
     {
       method: 'POST',
+      signal: timeoutController.signal,
       headers: {
         'content-type': 'application/json',
         'x-goog-api-key': apiKey,
@@ -125,6 +133,8 @@ async function generateRoutineWithAI(
       }),
     }
   );
+
+  clearTimeout(timeoutId);
 
   if (!response.ok) {
     throw new Error(`Gemini API 호출 실패: ${response.status}`);

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { FITNESS_LEVELS } from '../constants/fitnessOptions';
 import type { Routine } from '../types';
 
@@ -5,6 +6,7 @@ interface RoutinePreviewScreenProps {
   routine: Routine;
   completedIndices: number[];
   onSelectExercise: (index: number) => void;
+  onRegenerate: () => void;
   onBack: () => void;
 }
 
@@ -16,10 +18,20 @@ export function RoutinePreviewScreen({
   routine,
   completedIndices,
   onSelectExercise,
+  onRegenerate,
   onBack,
 }: RoutinePreviewScreenProps) {
+  const [confirmingRegenerate, setConfirmingRegenerate] = useState(false);
   const doneCount = completedIndices.length;
   const totalCount = routine.exercises.length;
+
+  const handleRegenerateClick = () => {
+    if (doneCount > 0) {
+      setConfirmingRegenerate(true);
+      return;
+    }
+    onRegenerate();
+  };
 
   return (
     <div className="flex min-h-screen flex-col gap-6 bg-black px-6 py-8 text-white">
@@ -73,6 +85,40 @@ export function RoutinePreviewScreen({
           );
         })}
       </ul>
+
+      <div className="mt-auto">
+        {confirmingRegenerate ? (
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900 px-5 py-4 text-center">
+            <p className="text-sm font-bold text-zinc-300">
+              완료한 운동 기록이 사라져요. 그래도 다시 만들까요?
+            </p>
+            <div className="mt-3 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmingRegenerate(false)}
+                className="flex-1 rounded-full border border-zinc-800 py-2 text-sm font-bold text-zinc-400"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={onRegenerate}
+                className="flex-1 rounded-full bg-lime-400 py-2 text-sm font-black text-black"
+              >
+                다시 만들기
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={handleRegenerateClick}
+            className="w-full rounded-full border border-zinc-800 py-3 text-sm font-black tracking-wide text-zinc-400 uppercase active:border-cyan-400 active:text-cyan-400"
+          >
+            🔄 루틴 다시 만들기 (광고 시청)
+          </button>
+        )}
+      </div>
     </div>
   );
 }

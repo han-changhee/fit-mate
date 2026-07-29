@@ -4,13 +4,23 @@ import type { FitnessGoal, FitnessLevel, TargetArea, UserProfile } from '../type
 
 interface OnboardingScreenProps {
   onComplete: (profile: UserProfile) => void;
+  // 최초 온보딩이 아니라 설정에서 "운동 정보 수정"으로 들어온 경우 기존 값을
+  // 채워주고, 취소하고 되돌아갈 수 있는 버튼도 보여준다.
+  initialProfile?: UserProfile;
+  onCancel?: () => void;
 }
 
-export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
+export function OnboardingScreen({
+  onComplete,
+  initialProfile,
+  onCancel,
+}: OnboardingScreenProps) {
   const [step, setStep] = useState(0);
-  const [fitnessLevel, setFitnessLevel] = useState<FitnessLevel | null>(null);
-  const [goal, setGoal] = useState<FitnessGoal | null>(null);
-  const [targetAreas, setTargetAreas] = useState<TargetArea[]>([]);
+  const [fitnessLevel, setFitnessLevel] = useState<FitnessLevel | null>(
+    initialProfile?.fitnessLevel ?? null
+  );
+  const [goal, setGoal] = useState<FitnessGoal | null>(initialProfile?.goal ?? null);
+  const [targetAreas, setTargetAreas] = useState<TargetArea[]>(initialProfile?.targetAreas ?? []);
 
   const toggleArea = (area: TargetArea) => {
     setTargetAreas((prev) =>
@@ -42,6 +52,15 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
   return (
     <div className="flex min-h-screen flex-col justify-between bg-black px-6 py-10 text-white">
       <div>
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="mb-4 self-start text-sm font-bold text-zinc-500"
+          >
+            ← 취소
+          </button>
+        )}
         <p className="text-xs font-black tracking-widest text-lime-400 uppercase">
           {step + 1} / 3
         </p>
@@ -117,7 +136,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
         disabled={!canProceed}
         className="rounded-full bg-lime-400 py-3 text-sm font-black tracking-wide text-black uppercase disabled:bg-zinc-800 disabled:text-zinc-600"
       >
-        {step < 2 ? '다음' : '시작하기'}
+        {step < 2 ? '다음' : initialProfile ? '저장하기' : '시작하기'}
       </button>
     </div>
   );

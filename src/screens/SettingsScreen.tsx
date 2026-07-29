@@ -24,11 +24,12 @@ function roundToNearest15(value: string): string {
 
 interface SettingsScreenProps {
   onBack: () => void;
+  onEditProfile: () => void;
   // 회원탈퇴 비활성화 — 아래 JSX/handleWithdraw 주석과 함께 재활성화할 것
   // onWithdraw: () => void;
 }
 
-export function SettingsScreen({ onBack }: SettingsScreenProps) {
+export function SettingsScreen({ onBack, onEditProfile }: SettingsScreenProps) {
   const [reminderTime, setReminderTime] = useState(DEFAULT_REMINDER_TIME);
   // const [confirmingWithdraw, setConfirmingWithdraw] = useState(false);
 
@@ -67,6 +68,15 @@ export function SettingsScreen({ onBack }: SettingsScreenProps) {
       </button>
 
       <h1 className="text-2xl font-black tracking-tight uppercase">설정</h1>
+
+      <button
+        type="button"
+        onClick={onEditProfile}
+        className="flex w-full items-center justify-between rounded-2xl border border-zinc-800 bg-zinc-900 px-5 py-4 text-left"
+      >
+        <span className="text-sm font-bold text-zinc-300">운동 정보 수정</span>
+        <span className="text-xs font-bold text-zinc-600">체력 수준 · 목적 · 부위 →</span>
+      </button>
 
       <div className="rounded-2xl border border-zinc-800 bg-zinc-900 px-5 py-4">
         <p className="text-sm font-bold text-zinc-300">운동 알림 시간</p>
