@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { TossAds } from '@apps-in-toss/web-framework';
 import { isAdInitSupported } from './lib/adSupport';
+import { fetchRoutine } from './lib/routineApi';
+import { showFullScreenAdIfAvailable } from './lib/fullScreenAd';
 // 회원가입/로그인/회원탈퇴 비활성화 — 서버 DB가 없어서 토스 로그인이 아직 실질적인
 // 기능이 없다(인가 코드만 받고 아무것도 저장/검증하지 않음). 사용자가 늘어나서
 // 기기 간 데이터 동기화가 필요해지는 시점에 아래 import와 이 파일 하단의 관련
@@ -12,7 +14,7 @@ import { useUserProfile } from './hooks/useUserProfile';
 // import { LoginScreen } from './screens/LoginScreen';
 import { OnboardingScreen } from './screens/OnboardingScreen';
 import { HomeScreen } from './screens/HomeScreen';
-import { RoutineLoadingScreen } from './screens/RoutineLoadingScreen';
+import { RoutineErrorScreen } from './screens/RoutineErrorScreen';
 import { RoutinePreviewScreen } from './screens/RoutinePreviewScreen';
 import { ExerciseDetailScreen } from './screens/ExerciseDetailScreen';
 import { WorkoutCompleteScreen } from './screens/WorkoutCompleteScreen';
@@ -20,15 +22,17 @@ import { HistoryScreen } from './screens/HistoryScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import type { Routine } from './types';
 
+const ROUTINE_AD_GROUP_ID = import.meta.env.PUBLIC_ROUTINE_LOADING_AD_GROUP_ID;
+
 type Screen =
   | 'home'
-  | 'loading'
   | 'preview'
   | 'exercise'
   | 'complete'
   | 'history'
   | 'settings'
-  | 'editProfile';
+  | 'editProfile'
+  | 'routineError';
 
 export default function App() {
   // const { session, login, logout } = useAuth();
@@ -39,7 +43,9 @@ export default function App() {
   const [routine, setRoutine] = useState<Routine | null>(null);
   const [completedIndices, setCompletedIndices] = useState<number[]>([]);
   const [activeExerciseIndex, setActiveExerciseIndex] = useState<number | null>(null);
+  const [isGeneratingRoutine, setIsGeneratingRoutine] = useState(false);
   const restoredRef = useRef(false);
+  const generationRunIdRef = useRef(0);
 
   useEffect(() => {
     if (!isAdInitSupported()) return;
@@ -63,6 +69,32 @@ export default function App() {
       setScreen('preview');
     }
   }, [profile, activeSession]);
+
+  // 버튼을 누르면 화면 전환 없이 그 자리에서(홈이든 미리보기든) 전면광고를 띄우고
+  // 뒤에서 AI 요청을 진행한다. 결과가 오면 그때 화면을 바꾼다 — 성공하면 루틴
+  // 미리보기로, 실패하면 별도의 실패 화면으로. 로딩바 화면 자체가 없으니 광고를
+  // 먼저 닫아도 어색한 "로딩 중" 화면이 다시 보일 일이 없다.
+  const generateRoutine = useCallback(() => {
+    if (!profile) return;
+    const runId = ++generationRunIdRef.current;
+    setIsGeneratingRoutine(true);
+    showFullScreenAdIfAvailable(ROUTINE_AD_GROUP_ID, () => {});
+
+    fetchRoutine(profile)
+      .then((next) => {
+        if (runId !== generationRunIdRef.current) return;
+        setIsGeneratingRoutine(false);
+        setRoutine(next);
+        setCompletedIndices([]);
+        saveSession({ routine: next, completedIndices: [] });
+        setScreen('preview');
+      })
+      .catch(() => {
+        if (runId !== generationRunIdRef.current) return;
+        setIsGeneratingRoutine(false);
+        setScreen('routineError');
+      });
+  }, [profile, saveSession]);
 
   // const handleWithdraw = () => {
   //   clearProfile();
@@ -102,19 +134,12 @@ export default function App() {
     );
   }
 
-  if (screen === 'loading') {
+  if (screen === 'routineError') {
     return (
-      <RoutineLoadingScreen
-        profile={profile}
-        onLoaded={(next) => {
-          setRoutine(next);
-          setCompletedIndices([]);
-          saveSession({ routine: next, completedIndices: [] });
-          setScreen('preview');
-        }}
-        // 첫 생성이면 홈으로, 루틴을 다시 만드는 중이었다면 기존 루틴이 남아있는
-        // 미리보기로 — routine이 이미 있었는지로 구분한다.
-        onCancel={() => setScreen(routine ? 'preview' : 'home')}
+      <RoutineErrorScreen
+        hasExistingRoutine={routine !== null}
+        onRetry={generateRoutine}
+        onExit={() => setScreen(routine ? 'preview' : 'home')}
       />
     );
   }
@@ -124,11 +149,12 @@ export default function App() {
       <RoutinePreviewScreen
         routine={routine}
         completedIndices={completedIndices}
+        isRegenerating={isGeneratingRoutine}
         onSelectExercise={(index) => {
           setActiveExerciseIndex(index);
           setScreen('exercise');
         }}
-        onRegenerate={() => setScreen('loading')}
+        onRegenerate={generateRoutine}
         onBack={() => {
           clearSession();
           setRoutine(null);
@@ -200,7 +226,8 @@ export default function App() {
     <HomeScreen
       profile={profile}
       streakCount={streak.count}
-      onStartRoutine={() => setScreen('loading')}
+      isGeneratingRoutine={isGeneratingRoutine}
+      onStartRoutine={generateRoutine}
       onShowHistory={() => setScreen('history')}
       onShowSettings={() => setScreen('settings')}
     />

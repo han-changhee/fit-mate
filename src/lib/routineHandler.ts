@@ -53,8 +53,10 @@ export async function handleRoutineRequest({
     const routine = await generateRoutineWithAI(apiKey, fitnessLevel, goal, targetAreas);
     return { status: 200, body: routine };
   } catch {
-    // AI 호출 실패 시에도 화면 흐름이 끊기지 않도록 더미 루틴으로 폴백한다.
-    return { status: 200, body: buildDummyRoutine(fitnessLevel, targetAreas) };
+    // 더미 루틴으로 조용히 폴백하지 않는다 — AI가 실제로 실패했을 때 가짜
+    // 운동 목록을 보여주는 대신, 클라이언트가 실패로 인식하고 별도의
+    // 실패 화면(RoutineErrorScreen)으로 안내하도록 에러 상태를 그대로 응답한다.
+    return { status: 502, body: { error: '루틴 생성에 실패했어요.' } };
   }
 }
 

@@ -5,6 +5,7 @@ import type { Routine } from '../types';
 interface RoutinePreviewScreenProps {
   routine: Routine;
   completedIndices: number[];
+  isRegenerating: boolean;
   onSelectExercise: (index: number) => void;
   onRegenerate: () => void;
   onBack: () => void;
@@ -17,6 +18,7 @@ function toDifficultyLabel(difficulty: Routine['difficulty']): string {
 export function RoutinePreviewScreen({
   routine,
   completedIndices,
+  isRegenerating,
   onSelectExercise,
   onRegenerate,
   onBack,
@@ -113,9 +115,10 @@ export function RoutinePreviewScreen({
           <button
             type="button"
             onClick={handleRegenerateClick}
-            className="w-full rounded-full border border-zinc-800 py-3 text-sm font-black tracking-wide text-zinc-400 uppercase active:border-cyan-400 active:text-cyan-400"
+            disabled={isRegenerating}
+            className="w-full rounded-full border border-zinc-800 py-3 text-sm font-black tracking-wide text-zinc-400 uppercase active:border-cyan-400 active:text-cyan-400 disabled:opacity-50"
           >
-            🔄 루틴 다시 만들기 (광고 시청)
+            {isRegenerating ? '생성 중...' : '🔄 루틴 다시 만들기 (광고 시청)'}
           </button>
         )}
       </div>

@@ -14,6 +14,7 @@ const HOME_BANNER_AD_GROUP_ID = import.meta.env.PUBLIC_HOME_BANNER_AD_GROUP_ID;
 interface HomeScreenProps {
   profile: UserProfile;
   streakCount: number;
+  isGeneratingRoutine: boolean;
   onStartRoutine: () => void;
   onShowHistory: () => void;
   onShowSettings: () => void;
@@ -22,6 +23,7 @@ interface HomeScreenProps {
 export function HomeScreen({
   profile,
   streakCount,
+  isGeneratingRoutine,
   onStartRoutine,
   onShowHistory,
   onShowSettings,
@@ -70,9 +72,10 @@ export function HomeScreen({
         <button
           type="button"
           onClick={onStartRoutine}
-          className="mt-6 w-full rounded-full bg-lime-400 py-3 text-sm font-black tracking-wide text-black uppercase active:bg-lime-300"
+          disabled={isGeneratingRoutine}
+          className="mt-6 w-full rounded-full bg-lime-400 py-3 text-sm font-black tracking-wide text-black uppercase active:bg-lime-300 disabled:bg-zinc-800 disabled:text-zinc-600"
         >
-          오늘의 루틴 생성하기
+          {isGeneratingRoutine ? '생성 중...' : '오늘의 루틴 생성하기'}
         </button>
       </div>
 
