@@ -15,6 +15,7 @@ interface HomeScreenProps {
   profile: UserProfile;
   streakCount: number;
   isGeneratingRoutine: boolean;
+  hasRoutineToday: boolean;
   onStartRoutine: () => void;
   onShowHistory: () => void;
   onShowSettings: () => void;
@@ -24,6 +25,7 @@ export function HomeScreen({
   profile,
   streakCount,
   isGeneratingRoutine,
+  hasRoutineToday,
   onStartRoutine,
   onShowHistory,
   onShowSettings,
@@ -75,7 +77,11 @@ export function HomeScreen({
           disabled={isGeneratingRoutine}
           className="mt-6 w-full rounded-full bg-lime-400 py-3 text-sm font-black tracking-wide text-black uppercase active:bg-lime-300 disabled:bg-zinc-800 disabled:text-zinc-600"
         >
-          {isGeneratingRoutine ? '생성 중...' : '오늘의 루틴 생성하기'}
+          {isGeneratingRoutine
+            ? '생성 중...'
+            : hasRoutineToday
+              ? '오늘의 루틴 이어서 하기'
+              : '오늘의 루틴 생성하기'}
         </button>
       </div>
 

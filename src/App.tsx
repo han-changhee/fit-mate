@@ -157,12 +157,9 @@ export default function App() {
           setScreen('exercise');
         }}
         onRegenerate={generateRoutine}
-        onBack={() => {
-          clearSession();
-          setRoutine(null);
-          setCompletedIndices([]);
-          setScreen('home');
-        }}
+        // 실수로 뒤로 나가도 오늘의 루틴은 그대로 남겨둔다 — 세션을 지우지
+        // 않으므로 홈에서 다시 들어오면 AI를 재호출하지 않고 이어볼 수 있다.
+        onBack={() => setScreen('home')}
       />
     );
   }
@@ -183,6 +180,8 @@ export default function App() {
           if (next.length >= routine.exercises.length) {
             markCompletedToday();
             clearSession();
+            setRoutine(null);
+            setCompletedIndices([]);
             setScreen('complete');
           } else {
             saveSession({ routine, completedIndices: next });
@@ -229,7 +228,9 @@ export default function App() {
       profile={profile}
       streakCount={streak.count}
       isGeneratingRoutine={isGeneratingRoutine}
-      onStartRoutine={generateRoutine}
+      hasRoutineToday={routine !== null}
+      // 오늘 이미 만든 루틴이 있으면 AI를 다시 호출하지 않고 곧장 보여준다.
+      onStartRoutine={() => (routine ? setScreen('preview') : generateRoutine())}
       onShowHistory={() => setScreen('history')}
       onShowSettings={() => setScreen('settings')}
     />
