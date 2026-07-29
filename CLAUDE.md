@@ -6,7 +6,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 "핏메이트" (FitMate) — 토스 인앱(Apps in Toss) 미니앱으로 동작하는 AI 개인화 운동 루틴 추천 웹앱. `@apps-in-toss/web-framework` 기반 React 앱이며 Vercel에 배포되어 있다. 전체 기획/BM/아키텍처/배포 전략은 [docs/MASTER_PLAN.md](docs/MASTER_PLAN.md)에 정리되어 있다 — 새 기능을 논의하기 전에 먼저 참고할 것.
 
-## 현재 진행 상황 (2026-07-29 기준)
+## 현재 진행 상황 (2026-07-29 기준, 계속)
+
+- [x] **실사용자 관점 불편사항 정리 후 6개 항목 개선**
+  - **AI 루틴 생성 실패 대응**: `generateRoutineWithAI`/`generateGuideWithAI`(Gemini 호출부)에 `AbortController` 15초 자체 타임아웃 추가 — Vercel Edge Function 플랫폼이 강제 종료(504)하기 전에 우리 코드가 먼저 포기하고 더미 루틴/폴백 가이드로 대응한다. 그래도 완전히 실패하면(오프라인 등) `RoutineLoadingScreen.tsx`가 조용히 홈으로 보내지 않고 "다시 시도/그만하기" 에러 UI를 보여준다.
+  - **"포인트 2배 받기" 버튼 제거**: 실제 포인트 시스템이 없는데 보상을 약속하는 버튼이라 `WorkoutCompleteScreen.tsx`에서 삭제.
+  - **프로필 수정 기능**: `OnboardingScreen.tsx`가 `initialProfile`/`onCancel` prop을 받아 설정 화면에서도 재사용된다. `SettingsScreen.tsx`에 "운동 정보 수정" 진입점 추가, `App.tsx`에 `'editProfile'` 화면 추가.
+  - **루틴 재생성**: `RoutinePreviewScreen.tsx`에 "루틴 다시 만들기(광고 시청)" 버튼 추가 — 홈까지 나가지 않고 `RoutineLoadingScreen`을 재사용해 광고 후 새 루틴을 받는다. 이미 완료한 운동이 있으면 확인 후 진행.
+  - **운동 도중 앱 종료 후 이어하기**: `src/hooks/useActiveSession.ts`(신규) — 진행 중인 루틴과 완료 인덱스를 `Storage`/`localStorage`에 저장한다. 세트/타이머 단위 진행까지는 저장하지 않고 "어떤 운동을 완료했는지"만 복원 — 앱을 껐다 켜면 홈이 아니라 루틴 미리보기(완료 표시 포함)로 곧장 이동한다. 완료 시점과 "뒤로"로 홈에 나갈 때 세션을 지운다.
+  - 로그인/회원가입은 계속 비활성 상태 유지하기로 결정(사용자 수가 늘어나면 그때 도입) — 기기 변경 시 데이터가 사라지는 문제는 이번엔 의도적으로 보류.
+  - **보류(로드맵)**: 전면광고 노출 빈도 제한, 횟수 카운터 되돌리기 버튼, 휴식 타이머 스킵, 자세 가이드 최초 조회 지연 안내, 기록 화면 통계/캘린더, 공유 카드 이미지 — 우선순위 낮음으로 다음 라운드에 진행.
+
+## 이전 진행 상황 (2026-07-29 기준)
 
 - [x] **Athletic & Energetic 다크/네온 리디자인** — 전체 화면(홈/온보딩/루틴미리보기/설정/기록/완료/에러바운더리 등) 배경을 `bg-black`, 텍스트를 `text-white`, 카드/보더를 `zinc-900`/`zinc-800`, 주요 액션 버튼을 `lime-400`(black 텍스트), 보조 액션을 `cyan-400`으로 통일. 강한 임팩트를 위해 헤딩은 `font-black uppercase tracking-tight` 조합을 기본으로 사용.
 - [x] **로딩 화면 → 광고 존 전환** — `RoutineLoadingScreen.tsx`가 더 이상 단순 스피너가 아니라 `src/components/AdZone.tsx`(배너 광고 + "Sponsored" 라벨)를 보여주면서 동시에 `showFullScreenAdIfAvailable`(전면광고)와 `fetchRoutine`을 병렬로 실행한다. 광고 SDK가 없는 일반 브라우저에서는 "Sponsored" 플레이스홀더만 보이는 게 정상.
