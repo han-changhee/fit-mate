@@ -8,14 +8,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 현재 진행 상황 (2026-07-29 기준, 계속)
 
-- [x] **실사용자 관점 불편사항 정리 후 6개 항목 개선**
-  - **AI 루틴 생성 실패 대응**: `generateRoutineWithAI`/`generateGuideWithAI`(Gemini 호출부)에 `AbortController` 15초 자체 타임아웃 추가 — Vercel Edge Function 플랫폼이 강제 종료(504)하기 전에 우리 코드가 먼저 포기하고 더미 루틴/폴백 가이드로 대응한다. 그래도 완전히 실패하면(오프라인 등) `RoutineLoadingScreen.tsx`가 조용히 홈으로 보내지 않고 "다시 시도/그만하기" 에러 UI를 보여준다.
+- [x] **루틴 생성 실패 처리 및 로딩 방식 재설계** — `RoutineLoadingScreen.tsx`(별도 화면)를 완전히 제거했다. 이제 홈/미리보기 화면에서 버튼을 누르면 화면 전환 없이 그 자리에서 버튼이 "생성 중..." 상태가 되고(`App.tsx`의 `generateRoutine`), 전면광고를 fire-and-forget으로 띄우면서 뒤에서 `fetchRoutine`을 병렬로 진행한다. 성공하면 그 자리에서 루틴 화면으로 전환하고, 실패하면 새로 만든 `RoutineErrorScreen.tsx`(다시 시도 / 루틴으로 돌아가기 or 홈으로)로 안내한다 — **더 이상 더미 루틴으로 조용히 폴백하지 않는다**. `routineHandler.ts`의 `handleRoutineRequest`도 Gemini 호출 실패 시 502를 반환하도록 바꿨다(단, `GEMINI_API_KEY` 자체가 없는 로컬 개발 환경만 예외적으로 더미 유지). Gemini 자체 타임아웃은 8초(`AbortController`).
+  - 이 변경으로 `src/components/AdZone.tsx`(로딩화면 전용 배너 존)도 함께 삭제됨 — 더 이상 쓰는 곳이 없음.
+  - 루틴 재생성(`RoutinePreviewScreen`의 "루틴 다시 만들기")도 동일한 `generateRoutine` 함수를 재사용 — 화면 전환 없이 버튼만 "생성 중..."으로 바뀐다.
+- [x] **횟수형 운동 카운터 자동 증가** — 매번 탭하는 게 번거롭다는 피드백으로, 목표 횟수에 닿기 전까지 3초마다 자동으로 올라가도록 `ExerciseDetailScreen.tsx`의 `RepCounter`를 수정(직접 탭해서 조절하는 것도 계속 가능).
+- [x] **실사용자 관점 불편사항 정리 후 개선**
   - **"포인트 2배 받기" 버튼 제거**: 실제 포인트 시스템이 없는데 보상을 약속하는 버튼이라 `WorkoutCompleteScreen.tsx`에서 삭제.
   - **프로필 수정 기능**: `OnboardingScreen.tsx`가 `initialProfile`/`onCancel` prop을 받아 설정 화면에서도 재사용된다. `SettingsScreen.tsx`에 "운동 정보 수정" 진입점 추가, `App.tsx`에 `'editProfile'` 화면 추가.
-  - **루틴 재생성**: `RoutinePreviewScreen.tsx`에 "루틴 다시 만들기(광고 시청)" 버튼 추가 — 홈까지 나가지 않고 `RoutineLoadingScreen`을 재사용해 광고 후 새 루틴을 받는다. 이미 완료한 운동이 있으면 확인 후 진행.
   - **운동 도중 앱 종료 후 이어하기**: `src/hooks/useActiveSession.ts`(신규) — 진행 중인 루틴과 완료 인덱스를 `Storage`/`localStorage`에 저장한다. 세트/타이머 단위 진행까지는 저장하지 않고 "어떤 운동을 완료했는지"만 복원 — 앱을 껐다 켜면 홈이 아니라 루틴 미리보기(완료 표시 포함)로 곧장 이동한다. 완료 시점과 "뒤로"로 홈에 나갈 때 세션을 지운다.
   - 로그인/회원가입은 계속 비활성 상태 유지하기로 결정(사용자 수가 늘어나면 그때 도입) — 기기 변경 시 데이터가 사라지는 문제는 이번엔 의도적으로 보류.
-  - **보류(로드맵)**: 전면광고 노출 빈도 제한, 횟수 카운터 되돌리기 버튼, 휴식 타이머 스킵, 자세 가이드 최초 조회 지연 안내, 기록 화면 통계/캘린더, 공유 카드 이미지 — 우선순위 낮음으로 다음 라운드에 진행.
+  - **보류(로드맵)**: 전면광고 노출 빈도 제한, 휴식 타이머 스킵, 자세 가이드 최초 조회 지연 안내, 기록 화면 통계/캘린더, 공유 카드 이미지 — 우선순위 낮음으로 다음 라운드에 진행.
 
 ## 이전 진행 상황 (2026-07-29 기준)
 
