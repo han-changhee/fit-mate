@@ -205,6 +205,13 @@ function RestCounter({
       <p className="text-sm font-bold text-zinc-500">
         {isLastSet ? '마지막 휴식이에요, 곧 완료!' : '다음 세트 준비하세요'}
       </p>
+      <button
+        type="button"
+        onClick={onFinish}
+        className="mt-2 rounded-full border border-zinc-800 px-6 py-2 text-xs font-black tracking-wide text-zinc-400 uppercase active:border-cyan-400 active:text-cyan-400"
+      >
+        건너뛰기
+      </button>
     </div>
   );
 }

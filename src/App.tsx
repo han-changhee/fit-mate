@@ -70,24 +70,26 @@ export default function App() {
     }
   }, [profile, activeSession]);
 
-  // 버튼을 누르면 화면 전환 없이 그 자리에서(홈이든 미리보기든) 전면광고를 띄우고
-  // 뒤에서 AI 요청을 진행한다. 결과가 오면 그때 화면을 바꾼다 — 성공하면 루틴
-  // 미리보기로, 실패하면 별도의 실패 화면으로. 로딩바 화면 자체가 없으니 광고를
-  // 먼저 닫아도 어색한 "로딩 중" 화면이 다시 보일 일이 없다.
+  // 버튼을 누르면 화면 전환 없이 그 자리에서(홈이든 미리보기든) 버튼만 "생성
+  // 중..."으로 바뀌고 뒤에서 AI 요청을 진행한다. 광고는 결과가 성공으로 온
+  // 뒤에만 띄운다 — 실패했는데 광고부터 보여주면 사용자 입장에서 "광고만 보고
+  // 아무것도 못 받은" 셈이 되므로, 실패 시에는 광고 없이 곧장 실패 화면으로 간다.
   const generateRoutine = useCallback(() => {
     if (!profile) return;
     const runId = ++generationRunIdRef.current;
     setIsGeneratingRoutine(true);
-    showFullScreenAdIfAvailable(ROUTINE_AD_GROUP_ID, () => {});
 
     fetchRoutine(profile)
       .then((next) => {
         if (runId !== generationRunIdRef.current) return;
-        setIsGeneratingRoutine(false);
-        setRoutine(next);
-        setCompletedIndices([]);
-        saveSession({ routine: next, completedIndices: [] });
-        setScreen('preview');
+        showFullScreenAdIfAvailable(ROUTINE_AD_GROUP_ID, () => {
+          if (runId !== generationRunIdRef.current) return;
+          setIsGeneratingRoutine(false);
+          setRoutine(next);
+          setCompletedIndices([]);
+          saveSession({ routine: next, completedIndices: [] });
+          setScreen('preview');
+        });
       })
       .catch(() => {
         if (runId !== generationRunIdRef.current) return;
