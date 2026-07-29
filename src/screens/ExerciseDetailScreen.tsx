@@ -143,6 +143,15 @@ function RepCounter({
   onIncrement: () => void;
   onFinishSet: () => void;
 }) {
+  // 매번 손으로 세는 게 번거롭다는 피드백을 반영해, 목표 횟수에 닿기 전까지는
+  // 3초마다 자동으로 올라간다. 페이스가 다르면 눌러서 직접 조절할 수도 있다.
+  useEffect(() => {
+    if (count >= target) return;
+    const timer = setTimeout(onIncrement, 3000);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [count, target]);
+
   return (
     <div className="flex flex-col items-center gap-6">
       <p className="text-xs font-bold tracking-widest text-zinc-500 uppercase">
@@ -155,6 +164,9 @@ function RepCounter({
       >
         {count}
       </button>
+      <p className="text-xs font-bold text-zinc-600">
+        3초마다 자동으로 올라가요 · 눌러서 직접 조절할 수도 있어요
+      </p>
       <button
         type="button"
         onClick={onFinishSet}

@@ -71,7 +71,7 @@ async function generateRoutineWithAI(
   // 그 전에 우리가 먼저 타임아웃을 걸어서, 아래 handleRoutineRequest의 try/catch가
   // 더미 루틴으로 폴백할 시간을 확보한다.
   const timeoutController = new AbortController();
-  const timeoutId = setTimeout(() => timeoutController.abort(), 15000);
+  const timeoutId = setTimeout(() => timeoutController.abort(), 8000);
 
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,

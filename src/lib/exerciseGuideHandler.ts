@@ -51,7 +51,7 @@ async function generateGuideWithAI(name: string): Promise<ExerciseGuide> {
   // 루틴 생성과 마찬가지로 Vercel 플랫폼이 강제 종료하기 전에 먼저 타임아웃을 걸어
   // handleExerciseGuideRequest의 try/catch가 폴백 가이드를 돌려줄 시간을 확보한다.
   const timeoutController = new AbortController();
-  const timeoutId = setTimeout(() => timeoutController.abort(), 15000);
+  const timeoutId = setTimeout(() => timeoutController.abort(), 8000);
 
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
