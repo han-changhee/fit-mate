@@ -24,6 +24,10 @@ import type { Routine } from './types';
 
 const ROUTINE_AD_GROUP_ID = import.meta.env.PUBLIC_ROUTINE_LOADING_AD_GROUP_ID;
 
+function todayString(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 type Screen =
   | 'home'
   | 'preview'
@@ -46,6 +50,7 @@ export default function App() {
   const [isGeneratingRoutine, setIsGeneratingRoutine] = useState(false);
   const restoredRef = useRef(false);
   const generationRunIdRef = useRef(0);
+  const sessionDateRef = useRef(todayString());
 
   useEffect(() => {
     if (!isAdInitSupported()) return;
@@ -69,6 +74,32 @@ export default function App() {
       setScreen('preview');
     }
   }, [profile, activeSession]);
+
+  // "오늘의 루틴"은 앱을 새로 열 때(useActiveSession의 날짜 체크)뿐 아니라, 앱을
+  // 켜둔 채로 자정을 넘기는 경우에도 리셋돼야 한다. 1분마다, 그리고 앱이 다시
+  // 화면에 보일 때(백그라운드에서 돌아올 때)마다 날짜가 바뀌었는지 확인한다.
+  useEffect(() => {
+    const checkMidnightRollover = () => {
+      const today = todayString();
+      if (today === sessionDateRef.current) return;
+      sessionDateRef.current = today;
+
+      clearSession();
+      setRoutine(null);
+      setCompletedIndices([]);
+      setActiveExerciseIndex(null);
+      setScreen((prev) =>
+        prev === 'preview' || prev === 'exercise' || prev === 'routineError' ? 'home' : prev
+      );
+    };
+
+    const interval = setInterval(checkMidnightRollover, 60_000);
+    document.addEventListener('visibilitychange', checkMidnightRollover);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', checkMidnightRollover);
+    };
+  }, [clearSession]);
 
   // 버튼을 누르면 화면 전환 없이 그 자리에서(홈이든 미리보기든) 버튼만 "생성
   // 중..."으로 바뀌고 뒤에서 AI 요청을 진행한다. 광고는 결과가 성공으로 온
